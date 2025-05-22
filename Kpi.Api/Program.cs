@@ -1,12 +1,12 @@
 using Kpi.Api.Extensions;
 using Kpi.Infrastructure.Contexts;
 using Kpi.Service.Exception;
+using Kpi.Service.Extencions;
 using Kpi.Service.Interfaces.IRepositories;
 using Kpi.Service.Service.Repositories;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProjectManagement.Service.Extencions;
 using Serilog;
 using System.Globalization;
 using System.Text.Json.Serialization;
