@@ -1,5 +1,6 @@
 ﻿
 using Kpi.Domain.Commons;
+using Kpi.Domain.Enum;
 using System.ComponentModel.DataAnnotations;
 
 namespace Kpi.Domain.Entities.User;
@@ -11,10 +12,9 @@ namespace Kpi.Domain.Entities.User;
         [Required]
         public string Password { get; set; }
         public string FullName { get; set; }
-        public int RoleId { get; set; }
 
         [Required]
-        public Role.Role Role { get; set; }
+        public Role Role { get; set; }
 
         public int? TeamId { get; set; }
         public Team.Team Team { get; set; }

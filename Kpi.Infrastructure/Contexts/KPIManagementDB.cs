@@ -3,7 +3,6 @@ using Kpi.Domain.Entities.Attachment;
 using Kpi.Domain.Entities.Country;
 using Kpi.Domain.Entities.Goal;
 using Kpi.Domain.Entities.MultilingualText;
-using Kpi.Domain.Entities.Role;
 using Kpi.Domain.Entities.Team;
 using Kpi.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
@@ -21,15 +20,8 @@ namespace Kpi.Infrastructure.Contexts
         public DbSet<Team> Teams { get; set; }
         public DbSet<Goal> Goals { get; set; }
         public DbSet<Evaluation> Evaluations { get; set; }
-        public DbSet<Role> Roles { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
-            modelBuilder.Entity<Role>()
-                .HasMany(r => r.Users)
-                .WithOne(u => u.Role)
-                .HasForeignKey(u => u.RoleId);
-
             modelBuilder.Entity<Team>()
                 .HasMany(t => t.Users)
                 .WithOne(u => u.Team)
@@ -65,6 +57,19 @@ namespace Kpi.Infrastructure.Contexts
                 .OnDelete(DeleteBehavior.Restrict);
 
 
+            var staticUser = new User()
+            {
+                Id = 1,
+                Role = 0,
+                FullName = "System Admin",
+                Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
+                UserName = "admin"
+            };
+
+
+            modelBuilder.Entity<User>().HasData(
+               staticUser
+            ); 
             modelBuilder.ApplyConfiguration(new CountryContentConfiguration());
             base.OnModelCreating(modelBuilder);
         }
