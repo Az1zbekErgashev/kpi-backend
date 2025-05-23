@@ -40,7 +40,7 @@ namespace Kpi.Service.Service.Auth
             {
                 HttpOnly = true,
                 Secure = false,
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Lax,
                 Expires = DateTime.UtcNow.AddHours(1)
             };
 
