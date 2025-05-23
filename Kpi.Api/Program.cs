@@ -90,6 +90,21 @@ builder.Services.AddSwaggerService();
 builder.Services.AddCustomServices();
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowDynamic", policy =>
+    {
+        policy
+            .SetIsOriginAllowed(origin =>
+            {
+                return origin.StartsWith("http://localhost") || origin.StartsWith("https://kpi-api.wisestone-u.com/");
+            })
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("ru-RU");
 CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("ru-RU");
 
@@ -107,13 +122,10 @@ app.UseSwaggerUI(options =>
 });
 
 
-app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-
 var env = app.Services.GetRequiredService<IWebHostEnvironment>();
 EnvironmentHelper.WebRootPath = env.WebRootPath;
-
+app.UseCors("AllowDynamic");
 app.UseStaticFiles();
-
 app.UseAuthentication();
 app.UseHttpsRedirection();
 app.UseAuthorization();
