@@ -27,7 +27,7 @@ namespace Kpi.Service.Service.Auth
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async ValueTask LoginAsync(UserForLoginDTO @dto)
+        public async ValueTask<string> LoginAsync(UserForLoginDTO @dto)
         {
             var existUser = await _userRepository.GetAll(x => x.UserName == dto.UserName && x.Password.Equals(dto.Password.Encrypt()) && x.IsDeleted == 0).FirstOrDefaultAsync();
 
@@ -36,15 +36,7 @@ namespace Kpi.Service.Service.Auth
 
             var token = await GenerateToken(existUser.Id, existUser.TeamId);
 
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true, 
-                SameSite = SameSiteMode.None, 
-                Expires = DateTime.UtcNow.AddHours(1)
-            };
-
-            _httpContextAccessor.HttpContext?.Response.Cookies.Append("jwt", token, cookieOptions);
+            return token;
         }
 
         public async ValueTask<bool> CheckUserName(UserForCheckUserNameDTO @dto)
