@@ -5,18 +5,22 @@ using Kpi.Service.Exception;
 using Kpi.Service.Interfaces.IRepositories;
 using Kpi.Service.Interfaces.User;
 using Kpi.Service.StringExtensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Authentication;
+using System.Security.Claims;
 
 namespace Kpi.Service.Service.User
 {
     public class UserService : IUserService
     {
         private readonly IGenericRepository<Domain.Entities.User.User> _userRepository;
-
-        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository)
+        private readonly IHttpContextAccessor httpContextAccessor;
+        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor)
         {
             _userRepository = userRepository;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
         public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)
@@ -135,6 +139,26 @@ namespace Kpi.Service.Service.User
         public async ValueTask<UserModel> GetByIdAsync([Required] int id)
         {
             var existUser = await _userRepository.GetAll(x => x.Id == id && x.IsDeleted == 0)
+                .Include(x => x.AssignedGoals)
+                .Include(x => x.CreatedGoals)
+                .Include(x => x.Team)
+                .Include(x => x.Evaluations)
+                .FirstOrDefaultAsync();
+
+            if (existUser == null) throw new KpiException(404, "user_not_found");
+
+            return new UserModel().MapFromEntity(existUser);
+        }
+
+
+        public async ValueTask<UserModel> GetByTokenAsync()
+        {
+            if (!int.TryParse(httpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            {
+                throw new InvalidCredentialException();
+            }
+
+            var existUser = await _userRepository.GetAll(x => x.Id == userId && x.IsDeleted == 0)
                 .Include(x => x.AssignedGoals)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)

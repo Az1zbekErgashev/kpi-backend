@@ -12,5 +12,6 @@ namespace Kpi.Service.Interfaces.User
         ValueTask<bool> DeleteAsync([Required] int id);
         ValueTask<PagedResult<UserModel>> GetAllAsync(UserForFilterDTO @dto);
         ValueTask<UserModel> GetByIdAsync([Required] int id);
+        ValueTask<UserModel> GetByTokenAsync();
     }
 }
