@@ -21,6 +21,7 @@ namespace Kpi.Domain.Models.User
             TeamId = entity.TeamId;
             CreatedAt = entity.CreatedAt;
             UpdatedAt = entity.UpdatedAt;
+            Id = entity.Id;
             return this;
         }
     }

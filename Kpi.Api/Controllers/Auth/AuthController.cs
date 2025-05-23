@@ -1,4 +1,5 @@
 ﻿using Kpi.Domain.Models.Response;
+using Kpi.Domain.Models.User;
 using Kpi.Service.DTOs.User;
 using Kpi.Service.Exception;
 using Kpi.Service.Extencions;
@@ -20,7 +21,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseModel<AuthModel>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
     public async ValueTask<IActionResult> LoginAsync(UserForLoginDTO @dto) => ResponseHandler.ReturnIActionResponse(await authService.LoginAsync(@dto));
 

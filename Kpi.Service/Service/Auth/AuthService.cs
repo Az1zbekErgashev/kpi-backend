@@ -1,4 +1,5 @@
-﻿using Kpi.Service.DTOs.User;
+﻿using Kpi.Domain.Models.User;
+using Kpi.Service.DTOs.User;
 using Kpi.Service.Exception;
 using Kpi.Service.Interfaces.Auth;
 using Kpi.Service.Interfaces.IRepositories;
@@ -27,7 +28,7 @@ namespace Kpi.Service.Service.Auth
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async ValueTask<string> LoginAsync(UserForLoginDTO @dto)
+        public async ValueTask<AuthModel> LoginAsync(UserForLoginDTO @dto)
         {
             var existUser = await _userRepository.GetAll(x => x.UserName == dto.UserName && x.Password.Equals(dto.Password.Encrypt()) && x.IsDeleted == 0).FirstOrDefaultAsync();
 
@@ -36,7 +37,7 @@ namespace Kpi.Service.Service.Auth
 
             var token = await GenerateToken(existUser.Id, existUser.TeamId);
 
-            return token;
+            return new AuthModel().MapFromEntity(token, existUser);
         }
 
         public async ValueTask<bool> CheckUserName(UserForCheckUserNameDTO @dto)
