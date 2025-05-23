@@ -1,0 +1,16 @@
+﻿using Kpi.Domain.Models.PagedResult;
+using Kpi.Domain.Models.User;
+using Kpi.Service.DTOs.User;
+using System.ComponentModel.DataAnnotations;
+
+namespace Kpi.Service.Interfaces.User
+{
+    public interface IUserService
+    {
+        ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto);
+        ValueTask<UserModel> UpdateAsync(UserForUpdateDTO @dto);
+        ValueTask<bool> DeleteAsync([Required] int id);
+        ValueTask<PagedResult<UserModel>> GetAllAsync(UserForFilterDTO @dto);
+        ValueTask<UserModel> GetByIdAsync([Required] int id);
+    }
+}

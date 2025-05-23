@@ -8,8 +8,8 @@ namespace Kpi.Domain.Entities.Goal
         public string Title { get; set; }
         public string Description { get; set; }
         public string Rated { get; set; }
-        public GoalType Type { get; set; } 
-        public GoalStatus Status { get; set; } 
+        public GoalType Type { get; set; }
+        public GoalStatus Status { get; set; }
 
         public int CreatedById { get; set; }
         public User.User CreatedBy { get; set; }

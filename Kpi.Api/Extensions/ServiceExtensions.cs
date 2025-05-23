@@ -1,14 +1,19 @@
 ﻿using Kpi.Domain.Entities.Attachment;
 using Kpi.Domain.Entities.Country;
 using Kpi.Domain.Entities.MultilingualText;
+using Kpi.Domain.Entities.User;
 using Kpi.Service.Interfaces.Attachment;
+using Kpi.Service.Interfaces.Auth;
 using Kpi.Service.Interfaces.Country;
 using Kpi.Service.Interfaces.IRepositories;
 using Kpi.Service.Interfaces.MultilingualText;
+using Kpi.Service.Interfaces.User;
 using Kpi.Service.Service.Attachment;
+using Kpi.Service.Service.Auth;
 using Kpi.Service.Service.Country;
 using Kpi.Service.Service.MultilingualText;
 using Kpi.Service.Service.Repositories;
+using Kpi.Service.Service.User;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,6 +31,7 @@ namespace Kpi.Api.Extensions
             services.AddScoped<IGenericRepository<Attachment>, GenericRepository<Attachment>>();
             services.AddScoped<IGenericRepository<Country>, GenericRepository<Country>>();
             services.AddScoped<IGenericRepository<MultilingualText>, GenericRepository<MultilingualText>>();
+            services.AddScoped<IGenericRepository<User>, GenericRepository<User>>();
         }
 
         public static void AddCustomServices(this IServiceCollection services)
@@ -34,6 +40,8 @@ namespace Kpi.Api.Extensions
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<IMultilingualTextInterface, MultilingualTextService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthService, AuthService>();
         }
         public static void AddSwaggerService(this IServiceCollection services)
         {

@@ -69,7 +69,7 @@ namespace Kpi.Infrastructure.Contexts
 
             modelBuilder.Entity<User>().HasData(
                staticUser
-            ); 
+            );
             modelBuilder.ApplyConfiguration(new CountryContentConfiguration());
             base.OnModelCreating(modelBuilder);
         }

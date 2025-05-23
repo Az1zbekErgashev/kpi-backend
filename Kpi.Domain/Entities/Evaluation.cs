@@ -12,7 +12,7 @@ namespace Kpi.Domain.Entities
         public int EvaluatedById { get; set; }
         public User.User EvaluatedBy { get; set; }
 
-        public string Grade { get; set; } 
+        public string Grade { get; set; }
         public string Comment { get; set; }
     }
 }

@@ -1,0 +1,149 @@
+﻿using Kpi.Domain.Models.PagedResult;
+using Kpi.Domain.Models.User;
+using Kpi.Service.DTOs.User;
+using Kpi.Service.Exception;
+using Kpi.Service.Interfaces.IRepositories;
+using Kpi.Service.Interfaces.User;
+using Kpi.Service.StringExtensions;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+
+namespace Kpi.Service.Service.User
+{
+    public class UserService : IUserService
+    {
+        private readonly IGenericRepository<Domain.Entities.User.User> _userRepository;
+
+        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository)
+        {
+            _userRepository = userRepository;
+        }
+
+        public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)
+        {
+            var user = new Domain.Entities.User.User()
+            {
+                TeamId = dto.TeamId,
+                FullName = dto.FullName,
+                Role = dto.Role,
+                UserName = dto.UserName,
+                Password = dto.Password.Encrypt(),
+            };
+
+            await _userRepository.CreateAsync(user);
+            await _userRepository.SaveChangesAsync();
+            return new UserModel().MapFromEntity(user);
+        }
+
+        public async ValueTask<UserModel> UpdateAsync(UserForUpdateDTO @dto)
+        {
+            var existUser = await _userRepository.GetAsync(x => x.Id == dto.Id && x.IsDeleted == 0);
+
+            if (existUser == null) throw new KpiException(404, "user_not_found");
+
+            existUser.Role = dto.Role;
+            existUser.FullName = dto.FullName;
+            existUser.Password = dto.Password ?? existUser.Password;
+            existUser.TeamId = dto.TeamId;
+            existUser.UpdatedAt = DateTime.UtcNow;
+
+            _userRepository.UpdateAsync(existUser);
+            await _userRepository.SaveChangesAsync();
+            return new UserModel().MapFromEntity(existUser);
+        }
+
+        public async ValueTask<bool> DeleteAsync([Required] int id)
+        {
+            var existUser = await _userRepository.GetAsync(x => x.Id == id && x.IsDeleted == 0);
+
+            if (existUser == null) throw new KpiException(404, "user_not_found");
+
+            existUser.UpdatedAt = DateTime.UtcNow;
+            existUser.IsDeleted = 1;
+
+            _userRepository.UpdateAsync(existUser);
+            await _userRepository.SaveChangesAsync();
+            return true;
+        }
+
+        public async ValueTask<PagedResult<UserModel>> GetAllAsync(UserForFilterDTO @dto)
+        {
+            var query = _userRepository.GetAll(x => x.IsDeleted == 0)
+                .Include(x => x.AssignedGoals)
+                .Include(x => x.CreatedGoals)
+                .Include(x => x.Team)
+                .Include(x => x.Evaluations)
+                .OrderByDescending(x => x.UpdatedAt)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(dto.Text))
+            {
+                query = query.Where(x => x.UserName.Contains(dto.Text) || x.FullName.Contains(dto.Text));
+            }
+
+            int totalCount = await query.CountAsync();
+
+            if (totalCount == 0)
+            {
+                return PagedResult<UserModel>.Create(
+                    Enumerable.Empty<UserModel>(),
+                    0,
+                    dto.PageSize,
+                    0,
+                    dto.PageIndex,
+                    0
+                );
+            }
+
+            if (dto.PageIndex == 0)
+            {
+                dto.PageIndex = 1;
+            }
+
+            if (dto.PageSize == 0)
+            {
+                dto.PageSize = totalCount;
+            }
+
+            int itemsPerPage = dto.PageSize;
+            int totalPages = (totalCount / itemsPerPage) + (totalCount % itemsPerPage == 0 ? 0 : 1);
+
+            if (dto.PageIndex > totalPages)
+            {
+                dto.PageIndex = totalPages;
+            }
+
+            query = query.ToPagedList(dto);
+
+            var list = await query.ToListAsync();
+
+            List<UserModel> models = list.Select(
+                f => new UserModel().MapFromEntity(f))
+                .ToList();
+
+            var pagedResult = PagedResult<UserModel>.Create(models,
+                totalCount,
+                itemsPerPage,
+                models.Count,
+                dto.PageIndex,
+                totalPages
+                );
+
+            return pagedResult;
+        }
+
+        public async ValueTask<UserModel> GetByIdAsync([Required] int id)
+        {
+            var existUser = await _userRepository.GetAll(x => x.Id == id && x.IsDeleted == 0)
+                .Include(x => x.AssignedGoals)
+                .Include(x => x.CreatedGoals)
+                .Include(x => x.Team)
+                .Include(x => x.Evaluations)
+                .FirstOrDefaultAsync();
+
+            if (existUser == null) throw new KpiException(404, "user_not_found");
+
+            return new UserModel().MapFromEntity(existUser);
+        }
+    }
+}
