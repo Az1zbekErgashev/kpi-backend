@@ -72,7 +72,6 @@ builder.Services.AddSignalR();
 var logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
-    .WriteTo.Console()
     .CreateLogger();
 
 builder.Logging.ClearProviders();
