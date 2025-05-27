@@ -2266,7 +2266,7 @@ namespace Kpi.Api.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
-                    b.Property<int>("RoomId")
+                    b.Property<int?>("RoomId")
                         .HasColumnType("integer");
 
                     b.Property<int?>("TeamId")
@@ -2291,13 +2291,12 @@ namespace Kpi.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 5, 27, 7, 10, 6, 871, DateTimeKind.Utc).AddTicks(7867),
+                            CreatedAt = new DateTime(2025, 5, 27, 10, 29, 17, 983, DateTimeKind.Utc).AddTicks(1397),
                             FullName = "System Admin",
                             IsDeleted = 0,
                             Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
                             Role = 0,
-                            RoomId = 0,
-                            UpdatedAt = new DateTime(2025, 5, 27, 7, 10, 6, 871, DateTimeKind.Utc).AddTicks(7870),
+                            UpdatedAt = new DateTime(2025, 5, 27, 10, 29, 17, 983, DateTimeKind.Utc).AddTicks(1399),
                             UserName = "admin"
                         });
                 });
@@ -2343,9 +2342,7 @@ namespace Kpi.Api.Migrations
                 {
                     b.HasOne("Kpi.Domain.Entities.Room.Room", "Room")
                         .WithMany("Users")
-                        .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("RoomId");
 
                     b.HasOne("Kpi.Domain.Entities.Team.Team", "Team")
                         .WithMany("Users")

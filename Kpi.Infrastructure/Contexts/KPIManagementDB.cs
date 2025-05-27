@@ -64,7 +64,7 @@ namespace Kpi.Infrastructure.Contexts
                 Role = 0,
                 FullName = "System Admin",
                 Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
-                UserName = "admin"
+                UserName = "admin",
             };
 
 
