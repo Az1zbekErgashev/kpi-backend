@@ -1,7 +1,6 @@
 ﻿using Kpi.Domain.Models.Response;
 using Kpi.Domain.Models.User;
 using Kpi.Service.DTOs.User;
-using Kpi.Service.Exception;
 using Kpi.Service.Extencions;
 using Kpi.Service.Interfaces.Auth;
 using Microsoft.AspNetCore.Mvc;

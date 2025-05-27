@@ -11,6 +11,7 @@ namespace Kpi.Domain.Models.User
         public string FullName { get; set; }
         public Role Role { get; set; }
         public int? TeamId { get; set; }
+        public string? Team { get; set; }
 
 
         public virtual UserModel MapFromEntity(Entities.User.User entity)
@@ -22,6 +23,7 @@ namespace Kpi.Domain.Models.User
             CreatedAt = entity.CreatedAt;
             UpdatedAt = entity.UpdatedAt;
             Id = entity.Id;
+            Team = entity?.Team?.Name;
             return this;
         }
     }
