@@ -12,6 +12,7 @@ namespace Kpi.Domain.Models.User
         public Role Role { get; set; }
         public int? TeamId { get; set; }
         public string? Team { get; set; }
+        public int IsDeleted { get; set; }
 
 
         public virtual UserModel MapFromEntity(Entities.User.User entity)
@@ -24,6 +25,7 @@ namespace Kpi.Domain.Models.User
             UpdatedAt = entity.UpdatedAt;
             Id = entity.Id;
             Team = entity?.Team?.Name;
+            IsDeleted = entity.IsDeleted;
             return this;
         }
     }
