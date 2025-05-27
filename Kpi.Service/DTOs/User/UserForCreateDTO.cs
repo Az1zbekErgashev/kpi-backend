@@ -18,5 +18,9 @@ namespace Kpi.Service.DTOs.User
         [Required]
         public Role Role { get; set; }
         public int? TeamId { get; set; }
+
+        [Required]
+        public int RoomId { get; set; }
+
     }
 }

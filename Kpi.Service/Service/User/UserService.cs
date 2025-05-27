@@ -32,6 +32,7 @@ namespace Kpi.Service.Service.User
                 Role = dto.Role,
                 UserName = dto.UserName,
                 Password = dto.Password.Encrypt(),
+                RoomId = dto.RoomId
             };
 
             await _userRepository.CreateAsync(user);
@@ -50,6 +51,7 @@ namespace Kpi.Service.Service.User
             existUser.Password = dto.Password ?? existUser.Password;
             existUser.TeamId = dto.TeamId;
             existUser.UpdatedAt = DateTime.UtcNow;
+            existUser.RoomId = dto.RoomId;
 
             _userRepository.UpdateAsync(existUser);
             await _userRepository.SaveChangesAsync();
@@ -77,6 +79,7 @@ namespace Kpi.Service.Service.User
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
+                .Include(x => x.Room)
                 .OrderByDescending(x => x.UpdatedAt)
                 .AsQueryable();
 
@@ -143,6 +146,7 @@ namespace Kpi.Service.Service.User
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
+                .Include(x => x.Room)
                 .FirstOrDefaultAsync();
 
             if (existUser == null) throw new KpiException(404, "user_not_found");
@@ -163,6 +167,7 @@ namespace Kpi.Service.Service.User
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
+                .Include(x => x.Room)
                 .FirstOrDefaultAsync();
 
             if (existUser == null) throw new KpiException(404, "user_not_found");

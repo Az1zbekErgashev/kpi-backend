@@ -1,8 +1,8 @@
 ﻿using Kpi.Domain.Commons;
 
-namespace Kpi.Domain.Entities.Team
+namespace Kpi.Domain.Entities.Room
 {
-    public class Team : Auditable
+    public class Room : Auditable
     {
         public string Name { get; set; }
         public ICollection<User.User> Users { get; set; }

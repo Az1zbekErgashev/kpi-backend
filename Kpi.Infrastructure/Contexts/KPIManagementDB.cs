@@ -3,6 +3,7 @@ using Kpi.Domain.Entities.Attachment;
 using Kpi.Domain.Entities.Country;
 using Kpi.Domain.Entities.Goal;
 using Kpi.Domain.Entities.MultilingualText;
+using Kpi.Domain.Entities.Room;
 using Kpi.Domain.Entities.Team;
 using Kpi.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ namespace Kpi.Infrastructure.Contexts
         public DbSet<MultilingualText> MultilingualText { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Team> Teams { get; set; }
+        public DbSet<Room> Rooms { get; set; }
         public DbSet<Goal> Goals { get; set; }
         public DbSet<Evaluation> Evaluations { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -25,13 +27,12 @@ namespace Kpi.Infrastructure.Contexts
             modelBuilder.Entity<Team>()
                 .HasMany(t => t.Users)
                 .WithOne(u => u.Team)
-                .HasForeignKey(u => u.TeamId);
-
-            modelBuilder.Entity<Team>()
-                .HasOne(t => t.Director)
-                .WithMany()
-                .HasForeignKey(t => t.DirectorId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(u => u.TeamId);  
+            
+            modelBuilder.Entity<Room>()
+                .HasMany(t => t.Users)
+                .WithOne(u => u.Room)
+                .HasForeignKey(u => u.RoomId);
 
             modelBuilder.Entity<User>()
                 .HasMany(u => u.CreatedGoals)

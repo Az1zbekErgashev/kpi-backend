@@ -19,6 +19,9 @@ public class User : Auditable
     public int? TeamId { get; set; }
     public Team.Team Team { get; set; }
 
+    public int RoomId { get; set; }
+    public Room.Room Room { get; set; }
+
     public ICollection<Goal.Goal> CreatedGoals { get; set; }
     public ICollection<Goal.Goal> AssignedGoals { get; set; }
     public ICollection<Evaluation> Evaluations { get; set; }
