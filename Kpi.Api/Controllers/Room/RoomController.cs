@@ -8,6 +8,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Kpi.Api.Controllers.Room
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class RoomController : ControllerBase
     {
         private readonly IRoomService _roomService;

@@ -8,6 +8,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Kpi.Api.Controllers.Team
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class TeamController : ControllerBase
     {
         private readonly ITeamService _teamService;
