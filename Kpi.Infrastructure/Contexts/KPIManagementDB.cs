@@ -27,8 +27,8 @@ namespace Kpi.Infrastructure.Contexts
             modelBuilder.Entity<Team>()
                 .HasMany(t => t.Users)
                 .WithOne(u => u.Team)
-                .HasForeignKey(u => u.TeamId);  
-            
+                .HasForeignKey(u => u.TeamId);
+
             modelBuilder.Entity<Room>()
                 .HasMany(t => t.Users)
                 .WithOne(u => u.Room)

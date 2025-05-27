@@ -1,18 +1,24 @@
 ﻿using Kpi.Domain.Entities.Attachment;
 using Kpi.Domain.Entities.Country;
 using Kpi.Domain.Entities.MultilingualText;
+using Kpi.Domain.Entities.Room;
+using Kpi.Domain.Entities.Team;
 using Kpi.Domain.Entities.User;
 using Kpi.Service.Interfaces.Attachment;
 using Kpi.Service.Interfaces.Auth;
 using Kpi.Service.Interfaces.Country;
 using Kpi.Service.Interfaces.IRepositories;
 using Kpi.Service.Interfaces.MultilingualText;
+using Kpi.Service.Interfaces.Room;
+using Kpi.Service.Interfaces.Team;
 using Kpi.Service.Interfaces.User;
 using Kpi.Service.Service.Attachment;
 using Kpi.Service.Service.Auth;
 using Kpi.Service.Service.Country;
 using Kpi.Service.Service.MultilingualText;
 using Kpi.Service.Service.Repositories;
+using Kpi.Service.Service.Room;
+using Kpi.Service.Service.Team;
 using Kpi.Service.Service.User;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -32,6 +38,8 @@ namespace Kpi.Api.Extensions
             services.AddScoped<IGenericRepository<Country>, GenericRepository<Country>>();
             services.AddScoped<IGenericRepository<MultilingualText>, GenericRepository<MultilingualText>>();
             services.AddScoped<IGenericRepository<User>, GenericRepository<User>>();
+            services.AddScoped<IGenericRepository<Room>, GenericRepository<Room>>();
+            services.AddScoped<IGenericRepository<Team>, GenericRepository<Team>>();
         }
 
         public static void AddCustomServices(this IServiceCollection services)
@@ -42,6 +50,8 @@ namespace Kpi.Api.Extensions
             services.AddScoped<IMultilingualTextInterface, MultilingualTextService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IRoomService, RoomService>();
+            services.AddScoped<ITeamService, TeamService>();
         }
         public static void AddSwaggerService(this IServiceCollection services)
         {
