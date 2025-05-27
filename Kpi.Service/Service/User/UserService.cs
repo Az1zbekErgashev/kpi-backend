@@ -72,7 +72,7 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<PagedResult<UserModel>> GetAllAsync(UserForFilterDTO @dto)
         {
-            var query = _userRepository.GetAll(x => x.IsDeleted == 0)
+            var query = _userRepository.GetAll(x => x.IsDeleted == dto.IsDeleted)
                 .Include(x => x.AssignedGoals)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
@@ -82,7 +82,7 @@ namespace Kpi.Service.Service.User
 
             if (!string.IsNullOrEmpty(dto.Text))
             {
-                query = query.Where(x => x.UserName.Contains(dto.Text) || x.FullName.Contains(dto.Text));
+                query = query.Where(x => x.UserName.Contains(dto.Text) || x.FullName.Contains(dto.Text) || (x.Team != null && x.Team.Name.Contains(dto.Text)));
             }
 
             int totalCount = await query.CountAsync();
