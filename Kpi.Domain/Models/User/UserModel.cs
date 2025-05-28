@@ -26,9 +26,9 @@ namespace Kpi.Domain.Models.User
             CreatedAt = entity.CreatedAt;
             UpdatedAt = entity.UpdatedAt;
             Id = entity.Id;
-            Team = entity?.Team?.Name;
+            Team = entity?.Team?.IsDeleted == 0 ? entity?.Team?.Name : null;
             IsDeleted = entity.IsDeleted;
-            Room = entity?.Room?.Name;
+            Room = entity?.Room?.IsDeleted == 0 ? entity?.Room?.Name : null;
             return this;
         }
     }
