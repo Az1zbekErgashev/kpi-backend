@@ -18,5 +18,8 @@ namespace Kpi.Service.DTOs.User
 
         [Required]
         public int RoomId { get; set; }
+
+        [Required]
+        public string UserName { get; set; }
     }
 }

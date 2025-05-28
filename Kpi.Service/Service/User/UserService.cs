@@ -25,6 +25,10 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)
         {
+            var existUser = await _userRepository.GetAsync(x => x.UserName == dto.UserName && x.IsDeleted == 0);
+
+            if (existUser != null) throw new KpiException(400, "this_user_already_exist");
+
             var user = new Domain.Entities.User.User()
             {
                 TeamId = dto.TeamId,
@@ -44,7 +48,11 @@ namespace Kpi.Service.Service.User
         {
             var existUser = await _userRepository.GetAsync(x => x.Id == dto.Id && x.IsDeleted == 0);
 
+            var existuserName = await _userRepository.GetAsync(x => x.UserName == dto.UserName && x.Id != dto.Id);
+
             if (existUser == null) throw new KpiException(404, "user_not_found");
+
+            if(existuserName != null) throw new KpiException(400, "this_user_already_exist");
 
             existUser.Role = dto.Role;
             existUser.FullName = dto.FullName;
