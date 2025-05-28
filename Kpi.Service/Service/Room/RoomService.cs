@@ -71,7 +71,7 @@ namespace Kpi.Service.Service.Room
 
         public async ValueTask<PagedResult<RoomModel>> GetAsync(RoomForFilterDTO dto)
         {
-            var allRooms = _roomRepository.GetAll(x => x.IsDeleted == 0).Include(x => x.Users).OrderByDescending(x => x.UpdatedAt).AsQueryable();
+            var allRooms = _roomRepository.GetAll(x => x.IsDeleted == dto.IsDeleted).Include(x => x.Users).OrderByDescending(x => x.UpdatedAt).AsQueryable();
 
             if (!string.IsNullOrEmpty(dto.Name)) allRooms = allRooms.Where(x => x.Name.Contains(dto.Name));
 

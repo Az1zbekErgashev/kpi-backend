@@ -11,7 +11,9 @@ namespace Kpi.Domain.Models.User
         public string FullName { get; set; }
         public Role Role { get; set; }
         public int? TeamId { get; set; }
+        public int? RoomId { get; set; }
         public string? Team { get; set; }
+        public string? Room { get; set; }
         public int IsDeleted { get; set; }
 
 
@@ -26,6 +28,7 @@ namespace Kpi.Domain.Models.User
             Id = entity.Id;
             Team = entity?.Team?.Name;
             IsDeleted = entity.IsDeleted;
+            Room = entity?.Room?.Name;
             return this;
         }
     }

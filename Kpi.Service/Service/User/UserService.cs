@@ -74,7 +74,7 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<PagedResult<UserModel>> GetAllAsync(UserForFilterDTO @dto)
         {
-            var query = _userRepository.GetAll(x => x.IsDeleted == dto.IsDeleted)
+            var query = _userRepository.GetAll(x => x.IsDeleted == dto.IsDeleted && x.Id != 1)
                 .Include(x => x.AssignedGoals)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)

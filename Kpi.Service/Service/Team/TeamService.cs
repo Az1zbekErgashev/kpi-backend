@@ -20,7 +20,7 @@ namespace Kpi.Service.Service.Team
 
         public async ValueTask<PagedResult<TeamModel>> GetAllAsync(TeamForFilterDTO @dto)
         {
-            var allTeams = _teamRepository.GetAll(x => x.IsDeleted == 0).Include(x => x.Users).OrderByDescending(x => x.UpdatedAt).AsQueryable();
+            var allTeams = _teamRepository.GetAll(x => x.IsDeleted == dto.IsDeleted).Include(x => x.Users).OrderByDescending(x => x.UpdatedAt).AsQueryable();
 
             if (!string.IsNullOrEmpty(dto.Name)) allTeams = allTeams.Where(x => x.Name.Contains(dto.Name));
 
