@@ -22,13 +22,14 @@ namespace Kpi.Domain.Models.User
             UserName = entity.UserName;
             FullName = entity.FullName;
             Role = entity.Role;
-            TeamId = entity.TeamId;
+            TeamId = entity?.Team?.IsDeleted == 0 ? entity?.TeamId : null;
             CreatedAt = entity.CreatedAt;
             UpdatedAt = entity.UpdatedAt;
             Id = entity.Id;
             Team = entity?.Team?.IsDeleted == 0 ? entity?.Team?.Name : null;
             IsDeleted = entity.IsDeleted;
             Room = entity?.Room?.IsDeleted == 0 ? entity?.Room?.Name : null;
+            RoomId = entity?.Room?.IsDeleted == 0 ? entity?.RoomId : null;
             return this;
         }
     }
