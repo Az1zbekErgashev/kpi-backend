@@ -123,7 +123,11 @@ namespace Kpi.Service.Service.MultilingualText
             var result = (await connection.QueryAsync<Domain.Entities.MultilingualText.MultilingualText>(query, new { Language = language })).ToList();
 
             return language == SupportLanguage.Ko
-                ? result.ToDictionary(x => x.Key, x => x.Text)
+                ? result.ToDictionary(x => x.Key, x => x.Text) :
+                language == SupportLanguage.En
+                ? result.ToDictionary(x => x.Key, x => x.Text) 
+                : language == SupportLanguage.Uz 
+                ? result.ToDictionary(x => x.Key, x => x.Text) 
                 : result.ToDictionary(x => x.Key, x => x.Text);
         }
 
@@ -149,10 +153,30 @@ namespace Kpi.Service.Service.MultilingualText
                 SupportLanguage = SupportLanguage.En,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
+            };        
+            
+            var newTextUz = new Domain.Entities.MultilingualText.MultilingualText
+            {
+                Key = dto.Key.Replace(" ", ""),
+                Text = dto.TextUz,
+                SupportLanguage = SupportLanguage.Uz,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };          
+            
+            var newTextRu = new Domain.Entities.MultilingualText.MultilingualText
+            {
+                Key = dto.Key.Replace(" ", ""),
+                Text = dto.TextRu,
+                SupportLanguage = SupportLanguage.Ru,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             await multilingualRepository.CreateAsync(newTextKo);
             await multilingualRepository.CreateAsync(newTextEn);
+            await multilingualRepository.CreateAsync(newTextRu);
+            await multilingualRepository.CreateAsync(newTextUz);
 
 
             await multilingualRepository.SaveChangesAsync();
@@ -201,6 +225,16 @@ namespace Kpi.Service.Service.MultilingualText
                 else if (item.SupportLanguage == SupportLanguage.En)
                 {
                     item.Text = dto.TextEn;
+                    multilingualRepository.UpdateAsync(item);
+                }
+                else if (item.SupportLanguage == SupportLanguage.Ru)
+                {
+                    item.Text = dto.TextRu;
+                    multilingualRepository.UpdateAsync(item);
+                }
+                else if (item.SupportLanguage == SupportLanguage.Uz)
+                {
+                    item.Text = dto.TextUz;
                     multilingualRepository.UpdateAsync(item);
                 }
             }
@@ -281,6 +315,12 @@ namespace Kpi.Service.Service.MultilingualText
                                 break;
                             case SupportLanguage.Ko:
                                 translation.TextKo = item.Text;
+                                break; 
+                            case SupportLanguage.Ru:
+                                translation.TextRu = item.Text;
+                                break;  
+                            case SupportLanguage.Uz:
+                                translation.TextUz = item.Text;
                                 break;
 
                         }

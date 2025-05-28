@@ -3,6 +3,8 @@
     public enum SupportLanguage
     {
         Ko,
-        En
+        En,
+        Uz,
+        Ru
     }
 }
