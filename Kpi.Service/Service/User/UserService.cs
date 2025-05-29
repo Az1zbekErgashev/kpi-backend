@@ -1,4 +1,5 @@
-﻿using Kpi.Domain.Models.PagedResult;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Kpi.Domain.Models.PagedResult;
 using Kpi.Domain.Models.User;
 using Kpi.Service.DTOs.User;
 using Kpi.Service.Exception;
@@ -22,7 +23,6 @@ namespace Kpi.Service.Service.User
             _userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
         }
-
         public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)
         {
             var existUser = await _userRepository.GetAsync(x => x.UserName == dto.UserName && x.IsDeleted == 0);
@@ -56,6 +56,7 @@ namespace Kpi.Service.Service.User
 
             existUser.Role = dto.Role;
             existUser.FullName = dto.FullName;
+            existUser.UserName = dto.UserName;
             existUser.Password = dto.Password ?? existUser.Password;
             existUser.TeamId = dto.TeamId;
             existUser.UpdatedAt = DateTime.UtcNow;
@@ -161,7 +162,6 @@ namespace Kpi.Service.Service.User
 
             return new UserModel().MapFromEntity(existUser);
         }
-
 
         public async ValueTask<UserModel> GetByTokenAsync()
         {

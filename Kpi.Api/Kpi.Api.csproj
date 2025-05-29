@@ -38,5 +38,9 @@
 	<ProjectReference Include="../Kpi.Infrastructure\Kpi.Infrastructure.csproj" />
 	<ProjectReference Include="../Kpi.Service\Kpi.Service.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Controllers\Goal\" />
+	</ItemGroup>
 	
 </Project>

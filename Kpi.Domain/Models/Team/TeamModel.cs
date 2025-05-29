@@ -9,7 +9,7 @@ namespace Kpi.Domain.Models.Team
         public int Id { get; set; }
         public DateTime? CreatedAt { get; set; }
         public int EmplyeesCount { get; set; }
-
+        public int IsDeleted { get; set; }
 
         public virtual TeamModel MapFromEntity(Entities.Team.Team entity)
         {
@@ -17,6 +17,7 @@ namespace Kpi.Domain.Models.Team
             Id = entity.Id;
             CreatedAt = entity.CreatedAt;
             EmplyeesCount = entity.Users != null ? entity.Users.Where(x => x.IsDeleted == 0).Count() : 0;
+            IsDeleted = entity.IsDeleted;
             return this;
         }
     }

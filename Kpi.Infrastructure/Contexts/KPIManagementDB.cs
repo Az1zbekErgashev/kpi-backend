@@ -1,5 +1,6 @@
 ﻿using Kpi.Domain.Entities;
 using Kpi.Domain.Entities.Attachment;
+using Kpi.Domain.Entities.Comment;
 using Kpi.Domain.Entities.Country;
 using Kpi.Domain.Entities.Goal;
 using Kpi.Domain.Entities.MultilingualText;
@@ -22,6 +23,7 @@ namespace Kpi.Infrastructure.Contexts
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Goal> Goals { get; set; }
         public DbSet<Evaluation> Evaluations { get; set; }
+        public DbSet<Comment> Comments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Team>()
@@ -38,8 +40,8 @@ namespace Kpi.Infrastructure.Contexts
                 .HasMany(u => u.CreatedGoals)
                 .WithOne(g => g.CreatedBy)
                 .HasForeignKey(g => g.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);
-
+                .OnDelete(DeleteBehavior.Restrict);  
+            
             modelBuilder.Entity<User>()
                 .HasMany(u => u.AssignedGoals)
                 .WithOne(g => g.AssignedTo)
@@ -48,6 +50,11 @@ namespace Kpi.Infrastructure.Contexts
 
             modelBuilder.Entity<Goal>()
                 .HasMany(g => g.Evaluations)
+                .WithOne(e => e.Goal)
+                .HasForeignKey(e => e.GoalId);            
+            
+            modelBuilder.Entity<Goal>()
+                .HasMany(g => g.Comment)
                 .WithOne(e => e.Goal)
                 .HasForeignKey(e => e.GoalId);
 
