@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Globalization;
 using System.Text.Json.Serialization;
-using Telegram.Bot;
 using static Kpi.Service.Service.Attachment.AttachmentService;
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
@@ -25,9 +24,6 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
-
-var botToken = builder.Configuration["TelegramBot:Token"];
-builder.Services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(botToken));
 
 builder.Services.AddControllers().AddJsonOptions(x =>
 {
@@ -99,7 +95,7 @@ builder.Services.AddCors(options =>
 
 CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("ru-RU");
 CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("ru-RU");
-builder.WebHost.UseUrls("http://127.0.0.1:5001");
+//builder.WebHost.UseUrls("http://127.0.0.1:5001");
 var app = builder.Build();
 
 app.UseSwagger(options =>

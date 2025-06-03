@@ -1,0 +1,63 @@
+﻿using Kpi.Domain.Models.Goal;
+using Kpi.Domain.Models.Response;
+using Kpi.Service.DTOs.Goal;
+using Kpi.Service.Extencions;
+using Kpi.Service.Interfaces.Goal;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Kpi.Api.Controllers.Goal
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class GoalController : ControllerBase
+    {
+        private readonly IGoalService goalService;
+
+        public GoalController(IGoalService goalService)
+        {
+            this.goalService = goalService;
+        }
+
+        [HttpPost("create-from-ceo")]
+        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> CreateFromCEOAsync(GoalForCreationDTO @dto) => ResponseHandler.ReturnIActionResponse(await goalService.CreateFromCEOAsync(@dto));
+
+        [HttpPost("create-from-team")]
+        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> CreateFromTeamLeaderAsync(GoalForCreationDTO @dto) => ResponseHandler.ReturnIActionResponse(await goalService.CreateFromTeamLeaderAsync(@dto));
+
+        [HttpPut("update")]
+        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> UpdateAsync(GoalForCreationDTO @dto) => ResponseHandler.ReturnIActionResponse(await goalService.UpdateAsync(@dto));
+
+        [HttpPut("change-goal-status")]
+        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> ChangeGoalStatus(ChangeGoalStatusDTO dto) => ResponseHandler.ReturnIActionResponse(await goalService.ChangeGoalStatus(@dto));
+
+        [HttpPut("send-goal")]
+        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> SendGoalRequest(GoalForSendDTO @dto) => ResponseHandler.ReturnIActionResponse(await goalService.SendGoalRequest(@dto));
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetByIdAsync(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetByIdAsync(id));
+
+
+        [HttpGet("by-userId/{id}")]
+        [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetByUserIdAsync(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetByUserIdAsync(id));
+
+
+        [HttpGet("by-user-token")]
+        [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetByTokenIdAsync(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetByTokenIdAsync(id));
+    }
+}

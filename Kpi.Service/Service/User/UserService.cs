@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Office2010.Excel;
-using Kpi.Domain.Models.PagedResult;
+﻿using Kpi.Domain.Models.PagedResult;
 using Kpi.Domain.Models.User;
 using Kpi.Service.DTOs.User;
 using Kpi.Service.Exception;
@@ -52,7 +51,7 @@ namespace Kpi.Service.Service.User
 
             if (existUser == null) throw new KpiException(404, "user_not_found");
 
-            if(existuserName != null) throw new KpiException(400, "this_user_already_exist");
+            if (existuserName != null) throw new KpiException(400, "this_user_already_exist");
 
             existUser.Role = dto.Role;
             existUser.FullName = dto.FullName;
@@ -181,6 +180,88 @@ namespace Kpi.Service.Service.User
             if (existUser == null) throw new KpiException(404, "user_not_found");
 
             return new UserModel().MapFromEntity(existUser);
+        }
+
+        public async ValueTask<PagedResult<UserModelForCEO>> GetUsersForCEO(UserForFilterCEOSideDTO dto)
+        {
+            var query = _userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader)
+                .Include(x => x.CreatedGoals)
+                .Include(x => x.Team)
+                .Include(x => x.Evaluations)
+                .Include(x => x.Room)
+                .OrderByDescending(x => x.UpdatedAt)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(dto.UserName))
+            {
+                query = query.Where(x => x.UserName.Contains(dto.UserName));
+            }
+
+            if (dto.RoomId != null)
+            {
+                query = query.Where(x => x.RoomId == dto.RoomId);
+            }
+
+            if (dto.TeamId != null)
+            {
+                query = query.Where(x => x.TeamId == dto.TeamId);
+            }
+
+            if (dto.Year != null)
+            {
+                int year = dto.Year.Value.Year;
+                query = query.Where(x => x.CreatedGoals.Any(goal => goal.CreatedAt.Year == year));
+            }
+
+            int totalCount = await query.CountAsync();
+
+            if (totalCount == 0)
+            {
+                return PagedResult<UserModelForCEO>.Create(
+                    Enumerable.Empty<UserModelForCEO>(),
+                    0,
+                    dto.PageSize,
+                    0,
+                    dto.PageIndex,
+                    0
+                );
+            }
+
+            if (dto.PageIndex == 0)
+            {
+                dto.PageIndex = 1;
+            }
+
+            if (dto.PageSize == 0)
+            {
+                dto.PageSize = totalCount;
+            }
+
+            int itemsPerPage = dto.PageSize;
+            int totalPages = (totalCount / itemsPerPage) + (totalCount % itemsPerPage == 0 ? 0 : 1);
+
+            if (dto.PageIndex > totalPages)
+            {
+                dto.PageIndex = totalPages;
+            }
+
+            query = query.ToPagedList(dto);
+
+            var list = await query.ToListAsync();
+
+            List<UserModelForCEO> models = list.Select(
+                f => new UserModelForCEO().MapFromEntity(f))
+                .ToList();
+
+            var pagedResult = PagedResult<UserModelForCEO>.Create(models,
+                totalCount,
+                itemsPerPage,
+                models.Count,
+                dto.PageIndex,
+                totalPages
+                );
+
+            return pagedResult;
         }
     }
 }

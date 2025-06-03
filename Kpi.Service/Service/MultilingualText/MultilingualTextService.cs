@@ -125,9 +125,9 @@ namespace Kpi.Service.Service.MultilingualText
             return language == SupportLanguage.Ko
                 ? result.ToDictionary(x => x.Key, x => x.Text) :
                 language == SupportLanguage.En
-                ? result.ToDictionary(x => x.Key, x => x.Text) 
-                : language == SupportLanguage.Uz 
-                ? result.ToDictionary(x => x.Key, x => x.Text) 
+                ? result.ToDictionary(x => x.Key, x => x.Text)
+                : language == SupportLanguage.Uz
+                ? result.ToDictionary(x => x.Key, x => x.Text)
                 : result.ToDictionary(x => x.Key, x => x.Text);
         }
 
@@ -153,8 +153,8 @@ namespace Kpi.Service.Service.MultilingualText
                 SupportLanguage = SupportLanguage.En,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
-            };        
-            
+            };
+
             var newTextUz = new Domain.Entities.MultilingualText.MultilingualText
             {
                 Key = dto.Key.Replace(" ", ""),
@@ -162,8 +162,8 @@ namespace Kpi.Service.Service.MultilingualText
                 SupportLanguage = SupportLanguage.Uz,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
-            };          
-            
+            };
+
             var newTextRu = new Domain.Entities.MultilingualText.MultilingualText
             {
                 Key = dto.Key.Replace(" ", ""),
@@ -315,10 +315,10 @@ namespace Kpi.Service.Service.MultilingualText
                                 break;
                             case SupportLanguage.Ko:
                                 translation.TextKo = item.Text;
-                                break; 
+                                break;
                             case SupportLanguage.Ru:
                                 translation.TextRu = item.Text;
-                                break;  
+                                break;
                             case SupportLanguage.Uz:
                                 translation.TextUz = item.Text;
                                 break;

@@ -1,5 +1,7 @@
 ﻿using Kpi.Domain.Entities.Attachment;
+using Kpi.Domain.Entities.Comment;
 using Kpi.Domain.Entities.Country;
+using Kpi.Domain.Entities.Goal;
 using Kpi.Domain.Entities.MultilingualText;
 using Kpi.Domain.Entities.Room;
 using Kpi.Domain.Entities.Team;
@@ -7,6 +9,7 @@ using Kpi.Domain.Entities.User;
 using Kpi.Service.Interfaces.Attachment;
 using Kpi.Service.Interfaces.Auth;
 using Kpi.Service.Interfaces.Country;
+using Kpi.Service.Interfaces.Goal;
 using Kpi.Service.Interfaces.IRepositories;
 using Kpi.Service.Interfaces.MultilingualText;
 using Kpi.Service.Interfaces.Room;
@@ -15,6 +18,7 @@ using Kpi.Service.Interfaces.User;
 using Kpi.Service.Service.Attachment;
 using Kpi.Service.Service.Auth;
 using Kpi.Service.Service.Country;
+using Kpi.Service.Service.Goal;
 using Kpi.Service.Service.MultilingualText;
 using Kpi.Service.Service.Repositories;
 using Kpi.Service.Service.Room;
@@ -40,6 +44,12 @@ namespace Kpi.Api.Extensions
             services.AddScoped<IGenericRepository<User>, GenericRepository<User>>();
             services.AddScoped<IGenericRepository<Room>, GenericRepository<Room>>();
             services.AddScoped<IGenericRepository<Team>, GenericRepository<Team>>();
+            services.AddScoped<IGenericRepository<Goal>, GenericRepository<Goal>>();
+            services.AddScoped<IGenericRepository<KpiGoal>, GenericRepository<KpiGoal>>();
+            services.AddScoped<IGenericRepository<TargetValue>, GenericRepository<TargetValue>>();
+            services.AddScoped<IGenericRepository<Comment>, GenericRepository<Comment>>();
+            services.AddScoped<IGenericRepository<Division>, GenericRepository<Division>>();
+            services.AddScoped<IGenericRepository<MonthlyTarget>, GenericRepository<MonthlyTarget>>();
         }
 
         public static void AddCustomServices(this IServiceCollection services)
@@ -52,6 +62,7 @@ namespace Kpi.Api.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRoomService, RoomService>();
             services.AddScoped<ITeamService, TeamService>();
+            services.AddScoped<IGoalService, GoalService>();
         }
         public static void AddSwaggerService(this IServiceCollection services)
         {

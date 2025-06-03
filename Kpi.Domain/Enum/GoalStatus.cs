@@ -2,9 +2,9 @@
 {
     public enum GoalStatus
     {
-        Draft,
-        Sent,
-        Accepted,
-        Rejected
+        NoWritte,           // Черновик (создан TeamLeader)
+        PendingReview,   // Ожидает проверки CEO
+        Returned,        // Возвращен с комментариями CEO
+        Approved
     }
 }

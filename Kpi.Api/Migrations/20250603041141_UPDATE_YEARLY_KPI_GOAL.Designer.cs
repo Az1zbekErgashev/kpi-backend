@@ -3,6 +3,7 @@ using System;
 using Kpi.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kpi.Api.Migrations
 {
     [DbContext(typeof(KpiDB))]
-    partial class KpiDBModelSnapshot : ModelSnapshot
+    [Migration("20250603041141_UPDATE_YEARLY_KPI_GOAL")]
+    partial class UPDATE_YEARLY_KPI_GOAL
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2263,14 +2266,14 @@ namespace Kpi.Api.Migrations
                     b.Property<int>("CreatedById")
                         .HasColumnType("integer");
 
-                    b.Property<int>("GoalId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("IsDeleted")
                         .HasColumnType("integer");
 
-                    b.Property<string>("TargetEvaluationText")
-                        .HasColumnType("text");
+                    b.Property<int>("KpiGoalId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
 
                     b.Property<double?>("TargetValueNumber")
                         .HasColumnType("double precision");
@@ -2279,7 +2282,9 @@ namespace Kpi.Api.Migrations
                         .HasColumnType("double precision");
 
                     b.Property<string>("TargetValueText")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
@@ -2290,7 +2295,7 @@ namespace Kpi.Api.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.HasIndex("GoalId");
+                    b.HasIndex("KpiGoalId");
 
                     b.ToTable("MonthlyTargets");
                 });
@@ -2307,7 +2312,9 @@ namespace Kpi.Api.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("EvaluationText")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("IsDeleted")
                         .HasColumnType("integer");
@@ -2331,7 +2338,9 @@ namespace Kpi.Api.Migrations
                         .HasColumnType("double precision");
 
                     b.Property<string>("ValueText")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
@@ -2474,12 +2483,12 @@ namespace Kpi.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 6, 3, 10, 55, 10, 566, DateTimeKind.Utc).AddTicks(6047),
+                            CreatedAt = new DateTime(2025, 6, 3, 4, 11, 41, 77, DateTimeKind.Utc).AddTicks(452),
                             FullName = "System Admin",
                             IsDeleted = 0,
                             Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
                             Role = 0,
-                            UpdatedAt = new DateTime(2025, 6, 3, 10, 55, 10, 566, DateTimeKind.Utc).AddTicks(6049),
+                            UpdatedAt = new DateTime(2025, 6, 3, 4, 11, 41, 77, DateTimeKind.Utc).AddTicks(454),
                             UserName = "admin"
                         });
                 });
@@ -2575,9 +2584,9 @@ namespace Kpi.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Kpi.Domain.Entities.Goal.Goal", "Goal")
+                    b.HasOne("Kpi.Domain.Entities.Goal.KpiGoal", "KpiGoal")
                         .WithMany("MonthlyTargets")
-                        .HasForeignKey("GoalId")
+                        .HasForeignKey("KpiGoalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2585,7 +2594,7 @@ namespace Kpi.Api.Migrations
 
                     b.Navigation("CreatedBy");
 
-                    b.Navigation("Goal");
+                    b.Navigation("KpiGoal");
                 });
 
             modelBuilder.Entity("Kpi.Domain.Entities.Goal.TargetValue", b =>
@@ -2624,12 +2633,12 @@ namespace Kpi.Api.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Divisions");
-
-                    b.Navigation("MonthlyTargets");
                 });
 
             modelBuilder.Entity("Kpi.Domain.Entities.Goal.KpiGoal", b =>
                 {
+                    b.Navigation("MonthlyTargets");
+
                     b.Navigation("TargetValue")
                         .IsRequired();
                 });

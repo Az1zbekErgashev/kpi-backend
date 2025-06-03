@@ -22,6 +22,10 @@ namespace Kpi.Infrastructure.Contexts
         public DbSet<Team> Teams { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Goal> Goals { get; set; }
+        public DbSet<KpiGoal> KpiGoals { get; set; }
+        public DbSet<Division> Divisions { get; set; }
+        public DbSet<TargetValue> TargetValues { get; set; }
+        public DbSet<MonthlyTarget> MonthlyTargets { get; set; }
         public DbSet<Evaluation> Evaluations { get; set; }
         public DbSet<Comment> Comments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,29 +44,83 @@ namespace Kpi.Infrastructure.Contexts
                 .HasMany(u => u.CreatedGoals)
                 .WithOne(g => g.CreatedBy)
                 .HasForeignKey(g => g.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);  
-            
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<User>()
                 .HasMany(u => u.AssignedGoals)
                 .WithOne(g => g.AssignedTo)
                 .HasForeignKey(g => g.AssignedToId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            modelBuilder.Entity<Goal>()
-                .HasMany(g => g.Evaluations)
-                .WithOne(e => e.Goal)
-                .HasForeignKey(e => e.GoalId);            
-            
-            modelBuilder.Entity<Goal>()
-                .HasMany(g => g.Comment)
-                .WithOne(e => e.Goal)
-                .HasForeignKey(e => e.GoalId);
 
             modelBuilder.Entity<Evaluation>()
                 .HasOne(e => e.EvaluatedBy)
                 .WithMany(u => u.Evaluations)
                 .HasForeignKey(e => e.EvaluatedById)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Goal>()
+                .HasMany(x => x.Divisions)
+                .WithOne(x => x.Goal)
+                .HasForeignKey(g => g.GoalId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Goal>()
+                .HasMany(g => g.Comments)
+                .WithOne(e => e.Goal)
+                .HasForeignKey(e => e.GoalId);
+
+            modelBuilder.Entity<Goal>()
+                .HasMany(e => e.MonthlyTargets)
+                .WithOne(mt => mt.Goal)
+                .HasForeignKey(mt => mt.GoalId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Comment>()
+                .HasOne(x => x.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<KpiGoal>(entity =>
+            {
+
+                entity.HasOne(e => e.Division)
+                      .WithMany(d => d.Goals)
+                      .HasForeignKey(e => e.DivisionId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.TargetValue)
+                      .WithOne(tv => tv.KpiGoal)
+                      .HasForeignKey<TargetValue>(tv => tv.KpiGoalId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<MonthlyTarget>(entity =>
+            {
+                entity.HasOne(e => e.Goal)
+                      .WithMany(k => k.MonthlyTargets)
+                      .HasForeignKey(e => e.GoalId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.CreatedBy)
+                      .WithMany()
+                      .HasForeignKey(e => e.CreatedById)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.AssignedTo)
+                      .WithMany()
+                      .HasForeignKey(e => e.AssignedToId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Comment>(entity =>
+            {
+                entity.HasOne(e => e.CreatedBy)
+                      .WithMany()
+                      .HasForeignKey(e => e.CreatedById)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
 
 
             var staticUser = new User()

@@ -26,6 +26,11 @@ namespace Kpi.Api.Controllers.User
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetAllAsync([FromQuery] UserForFilterDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetAllAsync(@dto));
 
+        [HttpGet("filter-ceo")]
+        [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetUsersForCEO([FromQuery] UserForFilterCEOSideDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetUsersForCEO(@dto));
+
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
