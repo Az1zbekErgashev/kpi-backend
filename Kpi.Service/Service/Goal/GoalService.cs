@@ -103,6 +103,7 @@ namespace Kpi.Service.Service.Goal
         {
             var model = await _goalRepository.GetAll(x => x.Id == id && x.IsDeleted == 0)
                 .Include(x => x.CreatedBy)
+                .ThenInclude(x => x.Room)
                 .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
@@ -121,6 +122,7 @@ namespace Kpi.Service.Service.Goal
         {
             var model = await _goalRepository.GetAll(x => x.CreatedById == id && x.IsDeleted == 0)
                 .Include(x => x.CreatedBy)
+                .ThenInclude(x => x.Room)
                 .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
@@ -138,6 +140,7 @@ namespace Kpi.Service.Service.Goal
         {
             var model = await _goalRepository.GetAll(x => x.CreatedById == GetUserIdFromContext() && x.IsDeleted == 0)
                 .Include(x => x.CreatedBy)
+                .ThenInclude(x => x.Room)
                 .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)

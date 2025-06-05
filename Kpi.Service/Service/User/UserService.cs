@@ -250,7 +250,7 @@ namespace Kpi.Service.Service.User
             var list = await query.ToListAsync();
 
             List<UserModelForCEO> models = list.Select(
-                f => new UserModelForCEO().MapFromEntity(f))
+                f => new UserModelForCEO().MapFromEntity(f, dto?.Year?.ToString() ?? DateTime.UtcNow.Year.ToString()))
                 .ToList();
 
             var pagedResult = PagedResult<UserModelForCEO>.Create(models,
