@@ -1,4 +1,5 @@
-﻿using Kpi.Domain.Entities.Goal;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using Kpi.Domain.Entities.Goal;
 using Kpi.Domain.Models.Goal;
 using Kpi.Service.DTOs.Goal;
 using Kpi.Service.Exception;
@@ -103,7 +104,7 @@ namespace Kpi.Service.Service.Goal
         {
             var model = await _goalRepository.GetAll(x => x.Id == id && x.IsDeleted == 0)
                 .Include(x => x.CreatedBy)
-                .ThenInclude(x => x.Room)
+                .ThenInclude(x => x.Team)
                 .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
@@ -117,12 +118,11 @@ namespace Kpi.Service.Service.Goal
             return new GoalModel().MapFromEntity(model);
         }
 
-
-        public async ValueTask<GoalModel> GetByUserIdAsync(int id)
+        public async ValueTask<GoalModel> GetByUserIdAsync(int id, int year)
         {
-            var model = await _goalRepository.GetAll(x => x.CreatedById == id && x.IsDeleted == 0)
+            var model = await _goalRepository.GetAll(x => x.CreatedById == id && x.IsDeleted == 0 && x.CreatedAt.Year == year)
                 .Include(x => x.CreatedBy)
-                .ThenInclude(x => x.Room)
+                .ThenInclude(x => x.Team)
                 .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
@@ -140,7 +140,7 @@ namespace Kpi.Service.Service.Goal
         {
             var model = await _goalRepository.GetAll(x => x.CreatedById == GetUserIdFromContext() && x.IsDeleted == 0)
                 .Include(x => x.CreatedBy)
-                .ThenInclude(x => x.Room)
+                .ThenInclude(x => x.Team)
                 .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
@@ -148,6 +148,19 @@ namespace Kpi.Service.Service.Goal
                 .ThenInclude(x => x.TargetValue)
                 .Include(x => x.MonthlyTargets)
                 .FirstOrDefaultAsync();
+
+            if (model == null) return null;
+
+            return new GoalModel().MapFromEntity(model);
+        }
+
+        public async ValueTask<GoalModel> GetByCeoGoal(int year)
+        {
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.Role == Domain.Enum.Role.Ceo && x.CreatedAt.Year == year && x.IsDeleted == 0)
+               .Include(x => x.CreatedBy)
+               .Include(x => x.Divisions)
+               .ThenInclude(x => x.Goals)
+               .FirstOrDefaultAsync();
 
             if (model == null) return null;
 
@@ -326,6 +339,7 @@ namespace Kpi.Service.Service.Goal
 
             return true;
         }
+
 
         private int GetUserIdFromContext()
         {

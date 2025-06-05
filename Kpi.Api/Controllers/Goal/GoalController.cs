@@ -4,6 +4,7 @@ using Kpi.Service.DTOs.Goal;
 using Kpi.Service.Extencions;
 using Kpi.Service.Interfaces.Goal;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace Kpi.Api.Controllers.Goal
 {
@@ -49,10 +50,15 @@ namespace Kpi.Api.Controllers.Goal
         public async ValueTask<IActionResult> GetByIdAsync(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetByIdAsync(id));
 
 
-        [HttpGet("by-userId/{id}")]
+        [HttpGet("by-userId/{id}/{year}")]
         [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
-        public async ValueTask<IActionResult> GetByUserIdAsync(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetByUserIdAsync(id));
+        public async ValueTask<IActionResult> GetByUserIdAsync(int id, [Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByUserIdAsync(id, year));   
+        
+        [HttpGet("ceo-goal/{year}")]
+        [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetByCeoGoal([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByCeoGoal(year));
 
 
         [HttpGet("by-user-token")]

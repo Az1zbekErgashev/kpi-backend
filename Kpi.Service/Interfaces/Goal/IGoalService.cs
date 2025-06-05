@@ -12,7 +12,8 @@ namespace Kpi.Service.Interfaces.Goal
         ValueTask<bool> ChangeGoalStatus(ChangeGoalStatusDTO dto);
         ValueTask<bool> SendGoalRequest(GoalForSendDTO @dto);
         ValueTask<GoalModel> GetByIdAsync(int id);
-        ValueTask<GoalModel> GetByUserIdAsync(int id);
+        ValueTask<GoalModel> GetByUserIdAsync(int id, int year);
         ValueTask<GoalModel> GetByTokenIdAsync(int id);
+        ValueTask<GoalModel> GetByCeoGoal(int year);
     }
 }
