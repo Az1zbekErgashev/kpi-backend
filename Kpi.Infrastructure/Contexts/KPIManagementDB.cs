@@ -63,12 +63,13 @@ namespace Kpi.Infrastructure.Contexts
                 .HasMany(x => x.Divisions)
                 .WithOne(x => x.Goal)
                 .HasForeignKey(g => g.GoalId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Goal>()
                 .HasMany(g => g.Comments)
                 .WithOne(e => e.Goal)
-                .HasForeignKey(e => e.GoalId);
+                .HasForeignKey(e => e.GoalId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Goal>()
                 .HasMany(e => e.MonthlyTargets)
@@ -84,11 +85,10 @@ namespace Kpi.Infrastructure.Contexts
 
             modelBuilder.Entity<KpiGoal>(entity =>
             {
-
                 entity.HasOne(e => e.Division)
                       .WithMany(d => d.Goals)
                       .HasForeignKey(e => e.DivisionId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.TargetValue)
                       .WithOne(tv => tv.KpiGoal)
