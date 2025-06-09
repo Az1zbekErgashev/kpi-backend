@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Bibliography;
+using Kpi.Domain.Entities.Comment;
 using Kpi.Domain.Entities.Goal;
 using Kpi.Domain.Models.Goal;
 using Kpi.Service.DTOs.Goal;
@@ -29,7 +30,8 @@ namespace Kpi.Service.Service.Goal
             IGenericRepository<TargetValue> targetValueTargetRepository,
             IGenericRepository<Domain.Entities.User.User> userRepository,
             IHttpContextAccessor httpContextAccessor,
-            IGenericRepository<Domain.Entities.Goal.Goal> goalRepository)
+            IGenericRepository<Domain.Entities.Goal.Goal> goalRepository,
+            IGenericRepository<Comment> coomentRepository)
         {
             _kpiGoalRepository = kpiGoalRepository;
             _divisionRepository = divisionRepository;
@@ -38,6 +40,7 @@ namespace Kpi.Service.Service.Goal
             _userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
             _goalRepository = goalRepository;
+            _coomentRepository = coomentRepository;
         }
 
         public async ValueTask<bool> CreateAsync(GoalForCreationDTO @dto, int userId)
@@ -257,6 +260,14 @@ namespace Kpi.Service.Service.Goal
             existGoal.UpdatedAt = DateTime.UtcNow;
             existGoal.Status = Domain.Enum.GoalStatus.PendingReview;
 
+            var comment = new Comment
+            {
+                GoalId = existGoal.Id,
+                CreatedById = GetUserIdFromContext(),
+                Content = dto.Comment,
+                Status = Domain.Enum.GoalStatus.PendingReview,
+            };
+
             if (dto.Divisions != null && dto.Divisions.Any())
             {
                 var incomingDivisionIds = dto.Divisions.Select(d => d?.Id).ToList();
@@ -394,8 +405,9 @@ namespace Kpi.Service.Service.Goal
             else throw new KpiException(400, "please_fill_fields");
 
             await _goalRepository.SaveChangesAsync();
-            await _divisionRepository.SaveChangesAsync();
             await _kpiGoalRepository.SaveChangesAsync();
+            await _coomentRepository.CreateAsync(comment);
+            await _coomentRepository.SaveChangesAsync();
 
             return new GoalModel().MapFromEntity(existGoal);
         }
