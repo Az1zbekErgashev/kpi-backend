@@ -120,7 +120,7 @@ namespace Kpi.Service.Service.Goal
 
         public async ValueTask<GoalModel> GetByUserIdAsync(int id, int year)
         {
-            var model = await _goalRepository.GetAll(x => x.CreatedById == id && x.IsDeleted == 0 && x.CreatedAt.Year == year)
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == id && x.IsDeleted == 0 && x.CreatedAt.Year == year)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Team)
                 .Include(x => x.AssignedTo)
@@ -339,8 +339,6 @@ namespace Kpi.Service.Service.Goal
 
             return true;
         }
-
-
         private int GetUserIdFromContext()
         {
             if (!int.TryParse(httpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))

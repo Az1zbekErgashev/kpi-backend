@@ -50,7 +50,7 @@ namespace Kpi.Api.Controllers.Goal
         public async ValueTask<IActionResult> GetByIdAsync(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetByIdAsync(id));
 
 
-        [HttpGet("by-userId/{id}/{year}")]
+        [HttpGet("by-team/{id}/{year}")]
         [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetByUserIdAsync(int id, [Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByUserIdAsync(id, year));   
