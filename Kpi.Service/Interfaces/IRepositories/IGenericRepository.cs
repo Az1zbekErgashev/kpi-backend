@@ -10,4 +10,5 @@ public interface IGenericRepository<T> where T : Auditable
     T UpdateAsync(T entity);
     ValueTask<bool> DeleteAsync(int id);
     ValueTask SaveChangesAsync();
+    ValueTask DeleteRangeAsync(IEnumerable<T> entities);
 }

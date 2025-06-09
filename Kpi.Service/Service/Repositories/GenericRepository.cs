@@ -1,4 +1,5 @@
-﻿using Kpi.Domain.Commons;
+﻿using DocumentFormat.OpenXml.InkML;
+using Kpi.Domain.Commons;
 using Kpi.Infrastructure.Contexts;
 using Kpi.Service.Interfaces.IRepositories;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +49,11 @@ namespace Kpi.Service.Service.Repositories
         public async ValueTask SaveChangesAsync() => await dbContext.SaveChangesAsync();
 
         public T UpdateAsync(T entity) => dbSet.Update(entity).Entity;
+
+        public async ValueTask DeleteRangeAsync(IEnumerable<T> entities)
+        {
+            dbSet.RemoveRange(entities);
+        }
     }
 
 }

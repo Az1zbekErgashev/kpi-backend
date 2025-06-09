@@ -264,18 +264,37 @@ namespace Kpi.Service.Service.Goal
                 GoalId = existGoal.Id
             };
 
-            foreach (var existingDivision in existGoal.Divisions)
+            foreach (var existingDivision in existGoal.Divisions.ToList())
             {
                 var updatedDivision = dto.Divisions.FirstOrDefault(d => d.Id == existingDivision.Id);
-                if (updatedDivision == null) continue;
 
+                if (updatedDivision == null)
+                {
+                    // Удаляем division, которого нет в DTO
+                    existGoal.Divisions.Remove(existingDivision);
+                    await _divisionRepository.DeleteAsync(existingDivision.Id);
+                    await _divisionRepository.SaveChangesAsync();
+                    continue;
+                }
+
+                // Обновляем существующий division
                 existingDivision.Name = updatedDivision.Name;
+                existingDivision.Ratio = updatedDivision.Ratio;
 
-                foreach (var existingGoal in existingDivision.Goals)
+                // Обновляем, добавляем и удаляем Goals
+                foreach (var existingGoal in existingDivision.Goals.ToList())
                 {
                     var updatedGoal = updatedDivision.Goals.FirstOrDefault(g => g.Id == existingGoal.Id);
-                    if (updatedGoal == null) continue;
 
+                    if (updatedGoal == null)
+                    {
+                        existingDivision.Goals.Remove(existingGoal);
+                        await _kpiGoalRepository.DeleteAsync(existingGoal.Id);
+                        await _kpiGoalRepository.SaveChangesAsync();
+                        continue;
+                    }
+
+                    // Обновляем существующий goal
                     existingGoal.GoalContent = updatedGoal.GoalContent;
                     existingGoal.UpdatedAt = DateTime.UtcNow;
 
@@ -296,11 +315,79 @@ namespace Kpi.Service.Service.Goal
                         await _targetValueTargetRepository.SaveChangesAsync();
                     }
 
-                    _kpiGoalRepository.UpdateAsync(existingGoal);
+                     _kpiGoalRepository.UpdateAsync(existingGoal);
+                    await _kpiGoalRepository.SaveChangesAsync();
+                }
+
+                // Добавляем новые goals
+                var newGoals = updatedDivision.Goals.Where(g => g.Id == null).ToList();
+                foreach (var newGoal in newGoals)
+                {
+                    var createdGoal = new KpiGoal
+                    {
+                        GoalContent = newGoal.GoalContent,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        DivisionId = existingDivision.Id,
+                        TargetValue = newGoal.TargetValue != null ? new TargetValue
+                        {
+                            ValueText = newGoal.TargetValue.ValueText,
+                            ValueNumber = newGoal.TargetValue.ValueNumber,
+                            EvaluationText = newGoal.TargetValue.EvaluationText,
+                            Status = newGoal.TargetValue.Status,
+                            ValueRatio = newGoal.TargetValue.ValueRatio,
+                            Type = (Domain.Enum.TargetValueType)newGoal.TargetValue.Type,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        } : null
+                    };
+
+                    existingDivision.Goals.Add(createdGoal);
+                    await _kpiGoalRepository.CreateAsync(createdGoal);
                     await _kpiGoalRepository.SaveChangesAsync();
                 }
 
                 _divisionRepository.UpdateAsync(existingDivision);
+                await _divisionRepository.SaveChangesAsync();
+            }
+
+            var newDivisions = dto.Divisions.Where(d => d.Id == null).ToList();
+            foreach (var newDivision in newDivisions)
+            {
+                var createdDivision = new Division
+                {
+                    Name = newDivision.Name,
+                    Ratio = newDivision.Ratio,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    Goals = new List<KpiGoal>()
+                };
+
+                foreach (var goal in newDivision.Goals)
+                {
+                    var createdGoal = new KpiGoal
+                    {
+                        GoalContent = goal.GoalContent,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        TargetValue = goal.TargetValue != null ? new TargetValue
+                        {
+                            ValueText = goal.TargetValue.ValueText,
+                            ValueNumber = goal.TargetValue.ValueNumber,
+                            EvaluationText = goal.TargetValue.EvaluationText,
+                            Status = goal.TargetValue.Status,
+                            ValueRatio = goal.TargetValue.ValueRatio,
+                            Type = (Domain.Enum.TargetValueType)goal.TargetValue.Type,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        } : null
+                    };
+
+                    createdDivision.Goals.Add(createdGoal);
+                }
+
+                existGoal.Divisions.Add(createdDivision);
+                await _divisionRepository.CreateAsync(createdDivision);
                 await _divisionRepository.SaveChangesAsync();
             }
 
