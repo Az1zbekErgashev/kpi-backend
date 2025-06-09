@@ -8,7 +8,7 @@ namespace Kpi.Domain.Entities.Goal
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
-
+        public double? Ratio { get; set; }
         public virtual ICollection<KpiGoal> Goals { get; set; }
 
         public virtual Goal Goal { get; set; }

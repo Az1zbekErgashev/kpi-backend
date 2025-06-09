@@ -70,7 +70,8 @@ namespace Kpi.Service.Service.Goal
                 {
                     CreatedAt = DateTime.UtcNow,
                     GoalId = goal.Id,
-                    Name = division.Name
+                    Name = division.Name,
+                    Ratio = division.Ratio
                 };
 
                 await _divisionRepository.CreateAsync(newDivision);

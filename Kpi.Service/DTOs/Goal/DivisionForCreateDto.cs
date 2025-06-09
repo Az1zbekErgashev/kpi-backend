@@ -8,7 +8,7 @@ namespace Kpi.Service.DTOs.Goal
 
         [Required]
         public string Name { get; set; }
-
+        public double? Ratio { get; set; }
         [Required]
         public List<KpiGoalForCreateDto> Goals { get; set; }
     }
