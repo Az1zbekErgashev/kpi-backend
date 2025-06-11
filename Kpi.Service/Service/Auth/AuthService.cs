@@ -1,4 +1,5 @@
-﻿using Kpi.Domain.Models.User;
+﻿using Kpi.Domain.Enum;
+using Kpi.Domain.Models.User;
 using Kpi.Service.DTOs.User;
 using Kpi.Service.Exception;
 using Kpi.Service.Interfaces.Auth;
@@ -35,7 +36,7 @@ namespace Kpi.Service.Service.Auth
             if (existUser is null)
                 throw new KpiException(400, "login_or_password_is_incorrect", false);
 
-            var token = await GenerateToken(existUser.Id, existUser.TeamId);
+            var token = await GenerateToken(existUser.Id, existUser.Role);
 
             return new AuthModel().MapFromEntity(token, existUser);
         }    
@@ -47,7 +48,7 @@ namespace Kpi.Service.Service.Auth
             if (existUser is null)
                 throw new KpiException(400, "login_or_password_is_incorrect", false);
 
-            var token = await GenerateToken(existUser.Id, existUser.TeamId);
+            var token = await GenerateToken(existUser.Id, existUser.Role);
 
             return new AuthModel().MapFromEntity(token, existUser);
         }
@@ -61,18 +62,14 @@ namespace Kpi.Service.Service.Auth
         }
 
 
-        private async ValueTask<string> GenerateToken(int userId, int? teamId)
+        private async ValueTask<string> GenerateToken(int userId, Role role)
         {
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Role, role.ToString()),
             };
-
-            if (teamId.HasValue)
-            {
-                claims.Add(new Claim(ClaimTypes.Country, teamId.Value.ToString()));
-            }
 
             return await ValueTask.FromResult(TokenGenerator(claims));
         }
