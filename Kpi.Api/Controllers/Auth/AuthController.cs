@@ -24,6 +24,11 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
     public async ValueTask<IActionResult> LoginAsync(UserForLoginDTO @dto) => ResponseHandler.ReturnIActionResponse(await authService.LoginAsync(@dto));
 
+    [HttpPost("login-users")]
+    [ProducesResponseType(typeof(ResponseModel<AuthModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+    public async ValueTask<IActionResult> LoginUserAsync(UserForLoginDTO @dto) => ResponseHandler.ReturnIActionResponse(await authService.LoginUserAsync(@dto));
+
 
     [HttpPost("check-userId")]
     [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]

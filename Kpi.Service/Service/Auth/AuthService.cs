@@ -30,7 +30,19 @@ namespace Kpi.Service.Service.Auth
 
         public async ValueTask<AuthModel> LoginAsync(UserForLoginDTO @dto)
         {
-            var existUser = await _userRepository.GetAll(x => x.UserName == dto.UserName && x.Password.Equals(dto.Password.Encrypt()) && x.IsDeleted == 0).FirstOrDefaultAsync();
+            var existUser = await _userRepository.GetAll(x => x.UserName == dto.UserName && x.Password.Equals(dto.Password.Encrypt()) && x.IsDeleted == 0 && (x.Role == Domain.Enum.Role.Ceo || x.Role == Domain.Enum.Role.Director)).FirstOrDefaultAsync();
+
+            if (existUser is null)
+                throw new KpiException(400, "login_or_password_is_incorrect", false);
+
+            var token = await GenerateToken(existUser.Id, existUser.TeamId);
+
+            return new AuthModel().MapFromEntity(token, existUser);
+        }    
+        
+        public async ValueTask<AuthModel> LoginUserAsync(UserForLoginDTO @dto)
+        {
+            var existUser = await _userRepository.GetAll(x => x.UserName == dto.UserName && x.Password.Equals(dto.Password.Encrypt()) && x.IsDeleted == 0 && (x.Role == Domain.Enum.Role.TeamMember || x.Role == Domain.Enum.Role.TeamLeader)).FirstOrDefaultAsync();
 
             if (existUser is null)
                 throw new KpiException(400, "login_or_password_is_incorrect", false);

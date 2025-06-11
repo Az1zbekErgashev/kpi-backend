@@ -7,5 +7,6 @@ namespace Kpi.Service.Interfaces.Auth
     {
         ValueTask<bool> CheckUserName(UserForCheckUserNameDTO @dto);
         ValueTask<AuthModel> LoginAsync(UserForLoginDTO @dto);
+        ValueTask<AuthModel> LoginUserAsync(UserForLoginDTO @dto);
     }
 }
