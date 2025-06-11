@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.InkML;
-using Kpi.Domain.Commons;
+﻿using Kpi.Domain.Commons;
 using Kpi.Infrastructure.Contexts;
 using Kpi.Service.Interfaces.IRepositories;
 using Microsoft.EntityFrameworkCore;

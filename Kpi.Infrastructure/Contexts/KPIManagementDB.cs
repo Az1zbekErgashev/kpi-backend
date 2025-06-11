@@ -7,6 +7,7 @@ using Kpi.Domain.Entities.MultilingualText;
 using Kpi.Domain.Entities.Room;
 using Kpi.Domain.Entities.Team;
 using Kpi.Domain.Entities.User;
+using Kpi.Infrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
 namespace Kpi.Infrastructure.Contexts
 {
@@ -28,12 +29,23 @@ namespace Kpi.Infrastructure.Contexts
         public DbSet<MonthlyTarget> MonthlyTargets { get; set; }
         public DbSet<Evaluation> Evaluations { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<Position> Positions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<User>()
+            .HasIndex(x => x.UserName)
+            .IsUnique();
+
             modelBuilder.Entity<Team>()
                 .HasMany(t => t.Users)
                 .WithOne(u => u.Team)
                 .HasForeignKey(u => u.TeamId);
+
+            modelBuilder.Entity<User>()
+                .HasOne(t => t.Position)
+                .WithMany()
+                .HasForeignKey(u => u.PositionId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Room>()
                 .HasMany(t => t.Users)
@@ -51,7 +63,6 @@ namespace Kpi.Infrastructure.Contexts
                 .WithOne(g => g.AssignedTo)
                 .HasForeignKey(g => g.AssignedToId)
                 .OnDelete(DeleteBehavior.SetNull);
-
 
             modelBuilder.Entity<Evaluation>()
                 .HasOne(e => e.EvaluatedBy)
@@ -137,12 +148,13 @@ namespace Kpi.Infrastructure.Contexts
                staticUser
             );
             modelBuilder.ApplyConfiguration(new CountryContentConfiguration());
+            modelBuilder.ApplyConfiguration(new PositionContentConfiguration());
             base.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.EnableSensitiveDataLogging(); 
+            optionsBuilder.EnableSensitiveDataLogging();
         }
     }
 }

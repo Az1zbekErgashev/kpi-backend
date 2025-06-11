@@ -16,11 +16,13 @@ namespace Kpi.Service.Service.User
     public class UserService : IUserService
     {
         private readonly IGenericRepository<Domain.Entities.User.User> _userRepository;
+        private readonly IGenericRepository<Domain.Entities.User.Position> _positionRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
-        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor)
+        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository)
         {
             _userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
+            _positionRepository = positionRepository;
         }
         public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)
         {
@@ -35,7 +37,8 @@ namespace Kpi.Service.Service.User
                 Role = dto.Role,
                 UserName = dto.UserName,
                 Password = dto.Password.Encrypt(),
-                RoomId = dto.RoomId
+                RoomId = dto.RoomId,
+                PositionId = dto.PositionId
             };
 
             await _userRepository.CreateAsync(user);
@@ -60,6 +63,7 @@ namespace Kpi.Service.Service.User
             existUser.TeamId = dto.TeamId;
             existUser.UpdatedAt = DateTime.UtcNow;
             existUser.RoomId = dto.RoomId;
+            existUser.PositionId = dto.PositionId;
 
             _userRepository.UpdateAsync(existUser);
             await _userRepository.SaveChangesAsync();
@@ -88,6 +92,7 @@ namespace Kpi.Service.Service.User
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
                 .Include(x => x.Room)
+                .Include(x => x.Position)
                 .OrderByDescending(x => x.UpdatedAt)
                 .AsQueryable();
 
@@ -155,6 +160,7 @@ namespace Kpi.Service.Service.User
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
                 .Include(x => x.Room)
+                .Include(x => x.Position)
                 .FirstOrDefaultAsync();
 
             if (existUser == null) throw new KpiException(404, "user_not_found");
@@ -175,6 +181,7 @@ namespace Kpi.Service.Service.User
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
                 .Include(x => x.Room)
+                .Include(x => x.Position)
                 .FirstOrDefaultAsync();
 
             if (existUser == null) throw new KpiException(404, "user_not_found");
@@ -189,6 +196,7 @@ namespace Kpi.Service.Service.User
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
                 .Include(x => x.Room)
+                .Include(x => x.Position)
                 .OrderByDescending(x => x.UpdatedAt)
                 .AsQueryable();
 
@@ -262,6 +270,12 @@ namespace Kpi.Service.Service.User
                 );
 
             return pagedResult;
+        }
+
+        public async ValueTask<List<PositionModel>> GetPositionAsync()
+        {
+            var position = await _positionRepository.GetAll().ToListAsync();
+            return position.Select(x => new PositionModel().MapFromEntity(x)).ToList();
         }
     }
 }

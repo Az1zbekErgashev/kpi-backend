@@ -13,6 +13,7 @@ namespace Kpi.Domain.Models.User
         public string? Room { get; set; }
         public GoalStatus Status { get; set; }
         public string? Year { get; set; }
+        public PositionModel? Position { get; set; }
 
         public virtual UserModelForCEO MapFromEntity(Entities.User.User entity, string? year)
         {
@@ -27,6 +28,7 @@ namespace Kpi.Domain.Models.User
              .FirstOrDefault(x => x.CreatedAt.Year == DateTime.UtcNow.Year)?.Status
              ?? GoalStatus.NoWritte;
             Year = year;
+            Position = entity?.Position is null ? null : new PositionModel().MapFromEntity(entity.Position);
             return this;
         }
     }

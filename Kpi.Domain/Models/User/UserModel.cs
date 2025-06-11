@@ -15,7 +15,7 @@ namespace Kpi.Domain.Models.User
         public string? Team { get; set; }
         public string? Room { get; set; }
         public int IsDeleted { get; set; }
-
+        public PositionModel? Position { get; set; }
 
         public virtual UserModel MapFromEntity(Entities.User.User entity)
         {
@@ -30,6 +30,7 @@ namespace Kpi.Domain.Models.User
             IsDeleted = entity.IsDeleted;
             Room = entity?.Room?.IsDeleted == 0 ? entity?.Room?.Name : null;
             RoomId = entity?.Room?.IsDeleted == 0 ? entity?.RoomId : null;
+            Position = entity?.Position is null ? null : new PositionModel().MapFromEntity(entity.Position);
             return this;
         }
     }

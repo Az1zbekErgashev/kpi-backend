@@ -2,9 +2,9 @@
 {
     public enum GoalStatus
     {
-        NoWritte,          
-        PendingReview,   
-        Returned,        
+        NoWritte,
+        PendingReview,
+        Returned,
         Approved
     }
 }

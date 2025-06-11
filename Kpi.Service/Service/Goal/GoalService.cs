@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using Kpi.Domain.Entities.Comment;
+﻿using Kpi.Domain.Entities.Comment;
 using Kpi.Domain.Entities.Goal;
 using Kpi.Domain.Models.Goal;
 using Kpi.Service.DTOs.Goal;

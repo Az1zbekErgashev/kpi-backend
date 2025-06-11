@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Kpi.Service.DTOs.Goal
+﻿namespace Kpi.Service.DTOs.Goal
 {
     public class DivisionForCreateDto
     {

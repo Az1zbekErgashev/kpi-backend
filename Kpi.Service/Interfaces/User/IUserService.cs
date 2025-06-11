@@ -14,5 +14,6 @@ namespace Kpi.Service.Interfaces.User
         ValueTask<UserModel> GetByIdAsync([Required] int id);
         ValueTask<UserModel> GetByTokenAsync();
         ValueTask<PagedResult<UserModelForCEO>> GetUsersForCEO(UserForFilterCEOSideDTO @dto);
+        ValueTask<List<PositionModel>> GetPositionAsync();
     }
 }

@@ -21,6 +21,7 @@ namespace Kpi.Service.DTOs.User
 
         [Required]
         public int RoomId { get; set; }
+        public int? PositionId { get; set; }
 
     }
 }
