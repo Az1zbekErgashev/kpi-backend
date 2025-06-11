@@ -1,5 +1,6 @@
 ﻿using Kpi.Domain.Entities.Comment;
 using Kpi.Domain.Entities.Goal;
+using Kpi.Domain.Enum;
 using Kpi.Domain.Models.Goal;
 using Kpi.Service.DTOs.Goal;
 using Kpi.Service.Exception;
@@ -22,6 +23,7 @@ namespace Kpi.Service.Service.Goal
         private readonly IGenericRepository<Domain.Entities.Goal.TargetValue> _targetValueTargetRepository;
         private readonly IGenericRepository<Domain.Entities.User.User> _userRepository;
         private readonly IGenericRepository<Domain.Entities.Comment.Comment> _coomentRepository;
+        private readonly IGenericRepository<Domain.Entities.Team.Team> teamRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
         public GoalService(IGenericRepository<KpiGoal> kpiGoalRepository,
             IGenericRepository<Division> divisionRepository,
@@ -30,7 +32,8 @@ namespace Kpi.Service.Service.Goal
             IGenericRepository<Domain.Entities.User.User> userRepository,
             IHttpContextAccessor httpContextAccessor,
             IGenericRepository<Domain.Entities.Goal.Goal> goalRepository,
-            IGenericRepository<Comment> coomentRepository)
+            IGenericRepository<Comment> coomentRepository,
+            IGenericRepository<Domain.Entities.Team.Team> teamRepository)
         {
             _kpiGoalRepository = kpiGoalRepository;
             _divisionRepository = divisionRepository;
@@ -40,6 +43,7 @@ namespace Kpi.Service.Service.Goal
             this.httpContextAccessor = httpContextAccessor;
             _goalRepository = goalRepository;
             _coomentRepository = coomentRepository;
+            this.teamRepository = teamRepository;
         }
 
         public async ValueTask<bool> CreateAsync(GoalForCreationDTO @dto, int userId)
@@ -125,7 +129,7 @@ namespace Kpi.Service.Service.Goal
 
         public async ValueTask<GoalModel> GetByUserIdAsync(int id, int year)
         {
-            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == id && x.IsDeleted == 0 && x.CreatedAt.Year == year)
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == id && x.IsDeleted == 0 && x.CreatedAt.Year == year && x.CreatedBy.Role == Domain.Enum.Role.TeamLeader)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
@@ -452,6 +456,78 @@ namespace Kpi.Service.Service.Goal
             if (!int.TryParse(httpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
                 throw new InvalidCredentialException();
             return userId;
+        }
+
+        public async ValueTask<GoalModel> GetByTeamIdAsync(int id, int year)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+              ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var existUserThisTeam = await teamRepository.GetAsync(
+                     x => x.Id == teamId && x.Users.Any(o => o.Id == id)
+                 );
+
+            if (existUserThisTeam == null) throw new KpiException(404, "user_not_found");
+
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId && x.IsDeleted == 0 && x.CreatedAt.Year == year && x.CreatedById == id)
+                .Include(x => x.CreatedBy)
+                .ThenInclude(x => x.Team)
+                .Include(x => x.CreatedBy)
+                .ThenInclude(x => x.Room)
+                .Include(x => x.AssignedTo)
+                .Include(x => x.Comments)
+                .Include(x => x.Divisions)
+                .ThenInclude(x => x.Goals)
+                .ThenInclude(x => x.TargetValue)
+                .Include(x => x.MonthlyTargets)
+                .FirstOrDefaultAsync();
+
+            if (model == null) throw new KpiException(404, "goal_not_found");
+
+            return new GoalModel().MapFromEntity(model);
+        }
+
+        public async ValueTask<GoalModel> GetTeamLeaderGoal(int year)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+              ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var existUserThisTeam = await teamRepository.GetAsync(
+                     x => x.Id == teamId && x.Users.Any(o => o.Role == Role.TeamLeader)
+                 );
+
+            if (existUserThisTeam == null) throw new KpiException(404, "team_leader_not_found");
+
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId && x.IsDeleted == 0 && x.CreatedAt.Year == year && x.CreatedBy.Role == Role.TeamLeader)
+                .Include(x => x.CreatedBy)
+                .ThenInclude(x => x.Team)
+                .Include(x => x.CreatedBy)
+                .ThenInclude(x => x.Room)
+                .Include(x => x.AssignedTo)
+                .Include(x => x.Comments)
+                .Include(x => x.Divisions)
+                .ThenInclude(x => x.Goals)
+                .ThenInclude(x => x.TargetValue)
+                .Include(x => x.MonthlyTargets)
+                .FirstOrDefaultAsync();
+
+            if (model == null) throw new KpiException(404, "goal_not_found");
+
+            return new GoalModel().MapFromEntity(model);
         }
     }
 }

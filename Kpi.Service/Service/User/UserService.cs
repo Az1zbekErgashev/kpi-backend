@@ -1,5 +1,8 @@
-﻿using Kpi.Domain.Models.PagedResult;
+﻿using DocumentFormat.OpenXml.InkML;
+using Kpi.Domain.Enum;
+using Kpi.Domain.Models.PagedResult;
 using Kpi.Domain.Models.User;
+using Kpi.Infrastructure.Contexts;
 using Kpi.Service.DTOs.User;
 using Kpi.Service.Exception;
 using Kpi.Service.Interfaces.IRepositories;
@@ -18,11 +21,13 @@ namespace Kpi.Service.Service.User
         private readonly IGenericRepository<Domain.Entities.User.User> _userRepository;
         private readonly IGenericRepository<Domain.Entities.User.Position> _positionRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
-        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository)
+        private readonly KpiDB kpiDB;
+        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository, KpiDB kpiDB)
         {
             _userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
             _positionRepository = positionRepository;
+            this.kpiDB = kpiDB;
         }
         public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)
         {
@@ -276,6 +281,174 @@ namespace Kpi.Service.Service.User
         {
             var position = await _positionRepository.GetAll().ToListAsync();
             return position.Select(x => new PositionModel().MapFromEntity(x)).ToList();
+        }
+
+        public async ValueTask<PagedResult<UserModelForCEO>> GetUserListWithGoal(UserForFilterCEOSideDTO dto)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+            ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var users = _userRepository.GetAll(x => x.IsDeleted == 0)
+                .Include(x => x.CreatedGoals)
+                .Include(x => x.Team)
+                .Include(x => x.Evaluations)
+                .Include(x => x.Room)
+                .Include(x => x.Position)
+                .OrderByDescending(x => x.UpdatedAt)
+                .AsQueryable();
+
+            if (role == Role.TeamLeader)
+            {
+                users = users.Where(x => x.TeamId == teamId && x.Id != userId);
+            }
+            else
+            {
+                users = users.Where(x => teamId == x.TeamId && x.Id == userId);
+            }
+
+
+            if (dto.Year != null)
+            {
+                int year = dto.Year.Value.Year;
+                users = users.Where(x => x.CreatedGoals.Any(goal => goal.CreatedAt.Year == year));
+            }
+
+            int totalCount = await users.CountAsync();
+
+            if (totalCount == 0)
+            {
+                return PagedResult<UserModelForCEO>.Create(
+                    Enumerable.Empty<UserModelForCEO>(),
+                    0,
+                    dto.PageSize,
+                    0,
+                    dto.PageIndex,
+                    0
+                );
+            }
+
+            if (dto.PageIndex == 0)
+            {
+                dto.PageIndex = 1;
+            }
+
+            if (dto.PageSize == 0)
+            {
+                dto.PageSize = totalCount;
+            }
+
+            int itemsPerPage = dto.PageSize;
+            int totalPages = (totalCount / itemsPerPage) + (totalCount % itemsPerPage == 0 ? 0 : 1);
+
+            if (dto.PageIndex > totalPages)
+            {
+                dto.PageIndex = totalPages;
+            }
+
+            users = users.ToPagedList(dto);
+
+            var list = await users.ToListAsync();
+
+            List<UserModelForCEO> models = list.Select(
+                f => new UserModelForCEO().MapFromEntity(f, dto?.Year?.ToString() ?? DateTime.UtcNow.Year.ToString()))
+                .ToList();
+
+            var pagedResult = PagedResult<UserModelForCEO>.Create(models,
+                totalCount,
+                itemsPerPage,
+                models.Count,
+                dto.PageIndex,
+                totalPages
+                );
+
+            return pagedResult;
+        }
+
+        public async ValueTask<PagedResult<UserModelForCEO>> GetTeamLeader(UserForFilterCEOSideDTO dto)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+           ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            if (role != Role.TeamLeader) throw new KpiException(400, "inccorect_role");
+
+            var users = _userRepository.GetAll(x => x.IsDeleted == 0 && x.Id == userId && x.TeamId == teamId)
+                .Include(x => x.CreatedGoals)
+                .Include(x => x.Team)
+                .Include(x => x.Evaluations)
+                .Include(x => x.Room)
+                .Include(x => x.Position)
+                .OrderByDescending(x => x.UpdatedAt)
+                .AsQueryable();
+
+            if (dto.Year != null)
+            {
+                int year = dto.Year.Value.Year;
+                users = users.Where(x => x.CreatedGoals.Any(goal => goal.CreatedAt.Year == year));
+            }
+
+            int totalCount = await users.CountAsync();
+
+            if (totalCount == 0)
+            {
+                return PagedResult<UserModelForCEO>.Create(
+                    Enumerable.Empty<UserModelForCEO>(),
+                    0,
+                    dto.PageSize,
+                    0,
+                    dto.PageIndex,
+                    0
+                );
+            }
+
+            if (dto.PageIndex == 0)
+            {
+                dto.PageIndex = 1;
+            }
+
+            if (dto.PageSize == 0)
+            {
+                dto.PageSize = totalCount;
+            }
+
+            int itemsPerPage = dto.PageSize;
+            int totalPages = (totalCount / itemsPerPage) + (totalCount % itemsPerPage == 0 ? 0 : 1);
+
+            if (dto.PageIndex > totalPages)
+            {
+                dto.PageIndex = totalPages;
+            }
+
+            users = users.ToPagedList(dto);
+
+            var list = await users.ToListAsync();
+
+            List<UserModelForCEO> models = list.Select(
+                f => new UserModelForCEO().MapFromEntity(f, dto?.Year?.ToString() ?? DateTime.UtcNow.Year.ToString()))
+                .ToList();
+
+            var pagedResult = PagedResult<UserModelForCEO>.Create(models,
+                totalCount,
+                itemsPerPage,
+                models.Count,
+                dto.PageIndex,
+                totalPages
+                );
+
+            return pagedResult;
         }
     }
 }

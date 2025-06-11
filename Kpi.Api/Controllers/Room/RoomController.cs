@@ -3,6 +3,7 @@ using Kpi.Domain.Models.Room;
 using Kpi.Service.DTOs.Room;
 using Kpi.Service.Extencions;
 using Kpi.Service.Interfaces.Room;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -10,6 +11,7 @@ namespace Kpi.Api.Controllers.Room
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Ceo,Director")]
     public class RoomController : ControllerBase
     {
         private readonly IRoomService _roomService;

@@ -20,7 +20,7 @@ namespace Kpi.Api.Controllers.MultilingualText
         }
 
         [HttpPost("create-from-json")]
-        [Authorize]
+        [Authorize(Roles = "Ceo,Director")]
         public async ValueTask<IActionResult> PostDocumentAsync([FromForm] MultilingualTextForCreateJson dto) => ResponseHandler.ReturnIActionResponse(await multilingualTextService.CreateFromJson(dto.File, dto.Language));
 
 
@@ -29,24 +29,20 @@ namespace Kpi.Api.Controllers.MultilingualText
 
 
         [HttpGet("all/translations")]
-        [Authorize]
+        [Authorize(Roles = "Ceo,Director")]
         public async ValueTask<IActionResult> GetAllAsync([FromQuery] UIContentGetAllAndSearchDTO dto) => ResponseHandler.ReturnIActionResponse(await multilingualTextService.GetTranslations(dto));
 
 
         [HttpDelete("delete")]
-        [Authorize]
+        [Authorize(Roles = "Ceo,Director")]
         public async ValueTask<IActionResult> DeleteAsync([Required] string key) => ResponseHandler.ReturnIActionResponse(await multilingualTextService.DeleteOrRecoverAsync(key));
 
         [HttpPost("create")]
-        [Authorize]
+        [Authorize(Roles = "Ceo,Director")]
         public async ValueTask<IActionResult> CreateAsync(MultilingualTextForCreateDTO dto) => ResponseHandler.ReturnIActionResponse(await multilingualTextService.CreateAsync(dto));
 
         [HttpPut("update")]
-        [Authorize]
+        [Authorize(Roles = "Ceo,Director")]
         public async ValueTask<IActionResult> UpdateAsync(MultilingualTextForCreateDTO dto) => ResponseHandler.ReturnIActionResponse(await multilingualTextService.UpdateAsync(dto));
-
-        [HttpPost("delete-unique-items")]
-        public async ValueTask<IActionResult> UpdateAllTranslationReplaceSpace() => ResponseHandler.ReturnIActionResponse(await multilingualTextService.UpdateAllTranslationReplaceSpace());
-
     }
 }

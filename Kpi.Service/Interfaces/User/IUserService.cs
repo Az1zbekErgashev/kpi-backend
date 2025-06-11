@@ -15,5 +15,7 @@ namespace Kpi.Service.Interfaces.User
         ValueTask<UserModel> GetByTokenAsync();
         ValueTask<PagedResult<UserModelForCEO>> GetUsersForCEO(UserForFilterCEOSideDTO @dto);
         ValueTask<List<PositionModel>> GetPositionAsync();
+        ValueTask<PagedResult<UserModelForCEO>> GetUserListWithGoal(UserForFilterCEOSideDTO dto);
+        ValueTask<PagedResult<UserModelForCEO>> GetTeamLeader(UserForFilterCEOSideDTO dto);
     }
 }

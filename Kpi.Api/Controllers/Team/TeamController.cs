@@ -3,6 +3,7 @@ using Kpi.Domain.Models.Team;
 using Kpi.Service.DTOs.Team;
 using Kpi.Service.Extencions;
 using Kpi.Service.Interfaces.Team;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -10,6 +11,7 @@ namespace Kpi.Api.Controllers.Team
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Ceo,Director")]
     public class TeamController : ControllerBase
     {
         private readonly ITeamService _teamService;

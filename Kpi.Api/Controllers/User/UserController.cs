@@ -22,6 +22,7 @@ namespace Kpi.Api.Controllers.User
         }
 
         [HttpGet("filter")]
+        [Authorize(Roles = "Ceo,Director")]
         [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetAllAsync([FromQuery] UserForFilterDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetAllAsync(@dto));
@@ -32,9 +33,22 @@ namespace Kpi.Api.Controllers.User
         public async ValueTask<IActionResult> GetPositionAsync() => ResponseHandler.ReturnIActionResponse(await _userRepository.GetPositionAsync());
 
         [HttpGet("filter-ceo")]
+        [Authorize(Roles = "Ceo,Director")]
         [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
-        public async ValueTask<IActionResult> GetUsersForCEO([FromQuery] UserForFilterCEOSideDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetUsersForCEO(@dto));
+        public async ValueTask<IActionResult> GetUsersForCEO([FromQuery] UserForFilterCEOSideDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetUsersForCEO(@dto));  
+        
+        [HttpGet("filter-teams")]
+        [Authorize(Roles = "TeamLeader,TeamMember")]
+        [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetUserListWithGoal([FromQuery] UserForFilterCEOSideDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetUserListWithGoal(@dto));      
+        
+        [HttpGet("team-leader")]
+        [Authorize(Roles = "TeamLeader")]
+        [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetTeamLeader([FromQuery] UserForFilterCEOSideDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetTeamLeader(@dto));
 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
@@ -47,11 +61,13 @@ namespace Kpi.Api.Controllers.User
         public async ValueTask<IActionResult> GetByTokenAsync() => ResponseHandler.ReturnIActionResponse(await _userRepository.GetByTokenAsync());
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Ceo,Director")]
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> DeleteAsync([Required] int id) => ResponseHandler.ReturnIActionResponse(await _userRepository.DeleteAsync(id));
 
         [HttpPost("create")]
+        [Authorize(Roles = "Ceo,Director")]
         [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> CreateAsync(UserForCreateDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.CreateAsync(@dto));

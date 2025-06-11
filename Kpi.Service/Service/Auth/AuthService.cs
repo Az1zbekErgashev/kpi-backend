@@ -36,7 +36,7 @@ namespace Kpi.Service.Service.Auth
             if (existUser is null)
                 throw new KpiException(400, "login_or_password_is_incorrect", false);
 
-            var token = await GenerateToken(existUser.Id, existUser.Role);
+            var token = await GenerateToken(existUser.Id, existUser.Role, existUser.TeamId);
 
             return new AuthModel().MapFromEntity(token, existUser);
         }    
@@ -48,7 +48,7 @@ namespace Kpi.Service.Service.Auth
             if (existUser is null)
                 throw new KpiException(400, "login_or_password_is_incorrect", false);
 
-            var token = await GenerateToken(existUser.Id, existUser.Role);
+            var token = await GenerateToken(existUser.Id, existUser.Role, existUser.TeamId);
 
             return new AuthModel().MapFromEntity(token, existUser);
         }
@@ -62,7 +62,7 @@ namespace Kpi.Service.Service.Auth
         }
 
 
-        private async ValueTask<string> GenerateToken(int userId, Role role)
+        private async ValueTask<string> GenerateToken(int userId, Role role, int? teamId)
         {
             var claims = new List<Claim>
             {
@@ -70,6 +70,11 @@ namespace Kpi.Service.Service.Auth
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Role, role.ToString()),
             };
+
+            if(teamId != null)
+            {
+                claims.Add(new Claim(ClaimTypes.Country, teamId.ToString()));
+            }
 
             return await ValueTask.FromResult(TokenGenerator(claims));
         }
