@@ -95,7 +95,7 @@ builder.Services.AddCors(options =>
 
 CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("ru-RU");
 CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("ru-RU");
-//builder.WebHost.UseUrls("http://127.0.0.1:5001");
+builder.WebHost.UseUrls("http://127.0.0.1:5001");
 var app = builder.Build();
 
 app.UseSwagger(options =>
