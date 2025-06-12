@@ -1,4 +1,5 @@
 ﻿using Kpi.Domain.Models.Goal;
+using Kpi.Domain.Models.Team;
 using Kpi.Service.DTOs.Goal;
 
 namespace Kpi.Service.Interfaces.Goal
@@ -17,5 +18,6 @@ namespace Kpi.Service.Interfaces.Goal
         ValueTask<GoalModel> GetByCeoGoal(int year);
         ValueTask<GoalModel> GetByTeamIdAsync(int id, int year);
         ValueTask<GoalModel> GetTeamLeaderGoal(int year);
+        ValueTask<TeamAndRoom> GetRoomAndTeam(int teamId);
     }
 }

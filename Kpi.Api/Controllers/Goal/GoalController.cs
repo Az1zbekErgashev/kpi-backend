@@ -1,5 +1,6 @@
 ﻿using Kpi.Domain.Models.Goal;
 using Kpi.Domain.Models.Response;
+using Kpi.Domain.Models.Team;
 using Kpi.Service.DTOs.Goal;
 using Kpi.Service.Extencions;
 using Kpi.Service.Interfaces.Goal;
@@ -80,5 +81,10 @@ namespace Kpi.Api.Controllers.Goal
         [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetByTokenIdAsync(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetByTokenIdAsync(id));
+
+        [HttpGet("team-by-id")]
+        [ProducesResponseType(typeof(ResponseModel<TeamAndRoom>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetRoomAndTeam(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetRoomAndTeam(id));
     }
 }

@@ -2,12 +2,14 @@
 using Kpi.Domain.Entities.Goal;
 using Kpi.Domain.Enum;
 using Kpi.Domain.Models.Goal;
+using Kpi.Domain.Models.Team;
 using Kpi.Service.DTOs.Goal;
 using Kpi.Service.Exception;
 using Kpi.Service.Interfaces.Goal;
 using Kpi.Service.Interfaces.IRepositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using System.Security.Authentication;
 using System.Security.Claims;
 
@@ -528,6 +530,22 @@ namespace Kpi.Service.Service.Goal
             if (model == null) throw new KpiException(404, "goal_not_found");
 
             return new GoalModel().MapFromEntity(model);
+        }
+
+        public async ValueTask<TeamAndRoom> GetRoomAndTeam(int teamId)
+        {
+            var team = await teamRepository.GetAll(x => x.Id == teamId && x.IsDeleted == 0).Include(x => x.Users).ThenInclude(x => x.Room).FirstOrDefaultAsync();
+
+
+            if (team is null) throw new KpiException(404, "team_not_found");
+
+            var activeUsers = team?.Users.Where(x => x.IsDeleted == 0);
+
+            string teamName = team.Name;
+            string roomName = activeUsers?.FirstOrDefault()?.Room?.Name;
+            int? roomId = activeUsers?.FirstOrDefault()?.Room?.Id;
+
+            return new TeamAndRoom().MapFromEntity(team.Id, roomId, teamName, roomName);
         }
     }
 }
