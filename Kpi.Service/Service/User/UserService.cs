@@ -20,20 +20,33 @@ namespace Kpi.Service.Service.User
     {
         private readonly IGenericRepository<Domain.Entities.User.User> _userRepository;
         private readonly IGenericRepository<Domain.Entities.User.Position> _positionRepository;
+        private readonly IGenericRepository<Domain.Entities.Team.Team> _teamRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly KpiDB kpiDB;
-        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository, KpiDB kpiDB)
+        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository, KpiDB kpiDB, IGenericRepository<Domain.Entities.Team.Team> teamRepository)
         {
             _userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
             _positionRepository = positionRepository;
             this.kpiDB = kpiDB;
+            _teamRepository = teamRepository;
         }
         public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)
         {
             var existUser = await _userRepository.GetAsync(x => x.UserName == dto.UserName && x.IsDeleted == 0);
 
             if (existUser != null) throw new KpiException(400, "this_user_already_exist");
+
+            var isExistTeam = await _teamRepository.GetAll(
+                x => x.Id == dto.TeamId &&
+                     x.IsDeleted == 0 &&
+                     x.Users.Any(u => u.Role == Role.TeamLeader && u.IsDeleted == 0)
+            ).FirstOrDefaultAsync();
+
+            if (isExistTeam != null)
+            {
+                throw new KpiException(400, "team_already_has_team_leader");
+            }
 
             var user = new Domain.Entities.User.User()
             {
@@ -60,6 +73,17 @@ namespace Kpi.Service.Service.User
             if (existUser == null) throw new KpiException(404, "user_not_found");
 
             if (existuserName != null) throw new KpiException(400, "this_user_already_exist");
+
+            var isExistTeam = await _teamRepository.GetAll(
+                x => x.Id == dto.TeamId &&
+                     x.IsDeleted == 0 &&
+                     x.Users.Any(u => u.Role == Role.TeamLeader && u.IsDeleted == 0)
+            ).FirstOrDefaultAsync();
+
+            if (isExistTeam != null)
+            {
+                throw new KpiException(400, "team_already_has_team_leader");
+            }
 
             existUser.Role = dto.Role;
             existUser.FullName = dto.FullName;
