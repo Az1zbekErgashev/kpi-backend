@@ -196,7 +196,7 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<PagedResult<UserModelForCEO>> GetUsersForCEO(UserForFilterCEOSideDTO dto)
         {
-            var query = _userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader)
+            var query = _userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader && x.IsDeleted == 0)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)

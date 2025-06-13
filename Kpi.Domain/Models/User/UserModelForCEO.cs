@@ -20,12 +20,12 @@ namespace Kpi.Domain.Models.User
             Id = entity.Id;
             UserName = entity.UserName;
             FullName = entity.FullName;
-            Room = entity?.Room?.Name;
-            Team = entity?.Team?.Name;
-            RoomId = entity?.RoomId;
-            TeamId = entity?.TeamId;
+            Room = entity?.Room?.IsDeleted == 0 ? entity?.Room?.Name : null;
+            Team = entity?.Team?.IsDeleted == 0 ? entity?.Team?.Name : null;
+            RoomId = entity?.Room?.IsDeleted == 0 ? entity?.RoomId : null;
+            TeamId = entity?.Team?.IsDeleted == 0 ? entity?.TeamId : null;
             Status = entity?.CreatedGoals
-             .FirstOrDefault(x => x.CreatedAt.Year == DateTime.UtcNow.Year)?.Status
+             .FirstOrDefault(x => x.CreatedAt.Year == DateTime.UtcNow.Year && x.IsDeleted == 0)?.Status
              ?? GoalStatus.NoWritte;
             Year = year;
             Position = entity?.Position is null ? null : new PositionModel().MapFromEntity(entity.Position);
