@@ -220,12 +220,6 @@ namespace Kpi.Service.Service.User
                 query = query.Where(x => x.TeamId == dto.TeamId);
             }
 
-            if (dto.Year != null)
-            {
-                int year = dto.Year.Value.Year;
-                query = query.Where(x => x.CreatedGoals.Any(goal => goal.CreatedAt.Year == year));
-            }
-
             int totalCount = await query.CountAsync();
 
             if (totalCount == 0)
@@ -262,8 +256,10 @@ namespace Kpi.Service.Service.User
 
             var list = await query.ToListAsync();
 
+            string filterYear = dto?.Year?.Year.ToString() ?? DateTime.UtcNow.Year.ToString();
+
             List<UserModelForCEO> models = list.Select(
-                f => new UserModelForCEO().MapFromEntity(f, dto?.Year?.ToString() ?? DateTime.UtcNow.Year.ToString()))
+                f => new UserModelForCEO().MapFromEntity(f, filterYear))
                 .ToList();
 
             var pagedResult = PagedResult<UserModelForCEO>.Create(models,
@@ -313,13 +309,6 @@ namespace Kpi.Service.Service.User
                 users = users.Where(x => teamId == x.TeamId && x.Id == userId);
             }
 
-
-            if (dto.Year != null)
-            {
-                int year = dto.Year.Value.Year;
-                users = users.Where(x => x.CreatedGoals.Any(goal => goal.CreatedAt.Year == year));
-            }
-
             int totalCount = await users.CountAsync();
 
             if (totalCount == 0)
@@ -356,8 +345,10 @@ namespace Kpi.Service.Service.User
 
             var list = await users.ToListAsync();
 
+            string filterYear = dto?.Year?.Year.ToString() ?? DateTime.UtcNow.Year.ToString();
+
             List<UserModelForCEO> models = list.Select(
-                f => new UserModelForCEO().MapFromEntity(f, dto?.Year?.ToString() ?? DateTime.UtcNow.Year.ToString()))
+                f => new UserModelForCEO().MapFromEntity(f, filterYear))
                 .ToList();
 
             var pagedResult = PagedResult<UserModelForCEO>.Create(models,
