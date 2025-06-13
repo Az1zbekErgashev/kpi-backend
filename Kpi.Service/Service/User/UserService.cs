@@ -394,11 +394,6 @@ namespace Kpi.Service.Service.User
                 .OrderByDescending(x => x.UpdatedAt)
                 .AsQueryable();
 
-            if (dto.Year != null)
-            {
-                int year = dto.Year.Value.Year;
-                users = users.Where(x => x.CreatedGoals.Any(goal => goal.CreatedAt.Year == year));
-            }
 
             int totalCount = await users.CountAsync();
 
@@ -436,8 +431,10 @@ namespace Kpi.Service.Service.User
 
             var list = await users.ToListAsync();
 
+            string filterYear = dto?.Year?.Year.ToString() ?? DateTime.UtcNow.Year.ToString();
+
             List<UserModelForCEO> models = list.Select(
-                f => new UserModelForCEO().MapFromEntity(f, dto?.Year?.ToString() ?? DateTime.UtcNow.Year.ToString()))
+                f => new UserModelForCEO().MapFromEntity(f, filterYear))
                 .ToList();
 
             var pagedResult = PagedResult<UserModelForCEO>.Create(models,
