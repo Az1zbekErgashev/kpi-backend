@@ -12,10 +12,7 @@
             Name = entity.Name;
             CreateAt = entity.CreatedAt;
             Id = entity.Id;
-            TeamsCount = entity.Users != null ? entity.Users.Where(u => u.TeamId != null && u.IsDeleted == 0 && u?.Team?.IsDeleted == 0)
-            .Select(u => u.TeamId)
-            .Distinct()
-            .Count() : 0;
+            TeamsCount = entity.Users != null ? entity.Users.Where(u => u.TeamId != null && u.IsDeleted == 0 && u?.Team?.IsDeleted == 0).Count() : 0;
             IsDeleted = entity.IsDeleted;
             return this;
         }
