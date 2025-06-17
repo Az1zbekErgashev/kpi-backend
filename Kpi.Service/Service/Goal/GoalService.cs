@@ -178,6 +178,7 @@ namespace Kpi.Service.Service.Goal
                .ThenInclude(x => x.Room)
                .Include(x => x.Divisions)
                .ThenInclude(x => x.Goals)
+               .ThenInclude(x => x.TargetValue)
                .FirstOrDefaultAsync();
 
             if (model == null) throw new KpiException(404, "goal_not_found");
@@ -422,6 +423,7 @@ namespace Kpi.Service.Service.Goal
             await _kpiGoalRepository.SaveChangesAsync();
             await _coomentRepository.CreateAsync(comment);
             await _coomentRepository.SaveChangesAsync();
+            await _targetValueTargetRepository.SaveChangesAsync();
 
             return new GoalModel().MapFromEntity(existGoal);
         }
