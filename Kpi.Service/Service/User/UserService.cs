@@ -315,7 +315,7 @@ namespace Kpi.Service.Service.User
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var users = _userRepository.GetAll(x => x.IsDeleted == 0)
+            var users = _userRepository.GetAll(x => x.IsDeleted == 0 && x.TeamId != null && x.RoomId != null)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
