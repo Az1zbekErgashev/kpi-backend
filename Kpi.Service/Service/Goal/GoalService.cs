@@ -52,7 +52,7 @@ namespace Kpi.Service.Service.Goal
         {
             var goal = new Domain.Entities.Goal.Goal
             {
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = dto.CreatetAt ?? DateTime.UtcNow,
                 CreatedById = userId,
                 Status = Domain.Enum.GoalStatus.PendingReview,
                 Comments = new List<Domain.Entities.Comment.Comment>()
@@ -207,6 +207,8 @@ namespace Kpi.Service.Service.Goal
 
             if (ceoGoalExists)
                 throw new KpiException(400, "ceo_goal_already_exists");
+
+            dto.CreatetAt = new DateTime(year, 1, 1);
 
             return await CreateAsync(dto, userId);
         }

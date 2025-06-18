@@ -8,5 +8,6 @@ namespace Kpi.Service.DTOs.Goal
         public List<DivisionForCreateDto> Divisions { get; set; }
         public string? Comment { get; set; }
         public int? GoalId { get; set; }
+        public DateTime? CreatetAt { get; set; }
     }
 }
