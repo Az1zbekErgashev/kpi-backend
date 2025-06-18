@@ -85,7 +85,7 @@ builder.Services.AddCors(options =>
         policy
             .SetIsOriginAllowed(origin =>
             {
-                return origin.StartsWith("http://localhost") || origin.StartsWith("https://kpi-api.wisestone-u.com/") || origin.StartsWith("https://kpi.wisestone-u.com/");
+                return origin.StartsWith("http://localhost") || origin.StartsWith("https://kpi-api.wisestone-u.com") || origin.StartsWith("https://kpi.wisestone-u.com");
             })
             .AllowAnyHeader()
             .AllowAnyMethod()
