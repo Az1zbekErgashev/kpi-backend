@@ -186,7 +186,7 @@ namespace Kpi.Service.Service.Goal
             return new GoalModel().MapFromEntity(model);
         }
 
-        public async ValueTask<bool> CreateFromCEOAsync(GoalForCreationDTO @dto)
+        public async ValueTask<bool> CreateFromCEOAsync(GoalForCreationDTO @dto, int year)
         {
             var userId = GetUserIdFromContext();
 
@@ -202,7 +202,7 @@ namespace Kpi.Service.Service.Goal
             .ToListAsync();
 
             bool ceoGoalExists = await _goalRepository
-               .GetAll(goal => goal.CreatedAt.Year == DateTime.UtcNow.Year && ceoIds.Contains(goal.CreatedById) && goal.IsDeleted == 0)
+               .GetAll(goal => goal.CreatedAt.Year == year && ceoIds.Contains(goal.CreatedById) && goal.IsDeleted == 0)
                .AnyAsync();
 
             if (ceoGoalExists)

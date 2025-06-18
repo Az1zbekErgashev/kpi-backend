@@ -1,4 +1,5 @@
-﻿using Kpi.Domain.Models.Goal;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using Kpi.Domain.Models.Goal;
 using Kpi.Domain.Models.Response;
 using Kpi.Domain.Models.Team;
 using Kpi.Service.DTOs.Goal;
@@ -21,11 +22,11 @@ namespace Kpi.Api.Controllers.Goal
             this.goalService = goalService;
         }
 
-        [HttpPost("create-from-ceo")]
+        [HttpPost("create-from-ceo/{year}")]
         [Authorize(Roles = "Ceo,Director")]
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
-        public async ValueTask<IActionResult> CreateFromCEOAsync(GoalForCreationDTO @dto) => ResponseHandler.ReturnIActionResponse(await goalService.CreateFromCEOAsync(@dto));
+        public async ValueTask<IActionResult> CreateFromCEOAsync(GoalForCreationDTO @dto, int year) => ResponseHandler.ReturnIActionResponse(await goalService.CreateFromCEOAsync(@dto, year));
 
         [HttpPost("create-from-team")]
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
@@ -53,7 +54,7 @@ namespace Kpi.Api.Controllers.Goal
         public async ValueTask<IActionResult> GetByIdAsync(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetByIdAsync(id));
 
 
-        [HttpGet("by-team/{id}/{year}")]
+        [HttpGet("by-user-id/{id}/{year}")]
         [Authorize(Roles = "Ceo,Director")]
         [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]

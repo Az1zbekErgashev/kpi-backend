@@ -8,7 +8,7 @@ namespace Kpi.Service.Interfaces.Goal
     {
         ValueTask<bool> CreateAsync(GoalForCreationDTO @dto, int userId);
         ValueTask<bool> CreateFromTeamLeaderAsync(GoalForCreationDTO @dto);
-        ValueTask<bool> CreateFromCEOAsync(GoalForCreationDTO @dto);
+        ValueTask<bool> CreateFromCEOAsync(GoalForCreationDTO @dto, int year);
         ValueTask<GoalModel> UpdateAsync(GoalForCreationDTO @dto);
         ValueTask<bool> ChangeGoalStatus(ChangeGoalStatusDTO dto);
         ValueTask<bool> SendGoalRequest(GoalForSendDTO @dto);
