@@ -22,13 +22,11 @@ namespace Kpi.Service.Service.User
         private readonly IGenericRepository<Domain.Entities.User.Position> _positionRepository;
         private readonly IGenericRepository<Domain.Entities.Team.Team> _teamRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
-        private readonly KpiDB kpiDB;
-        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository, KpiDB kpiDB, IGenericRepository<Domain.Entities.Team.Team> teamRepository)
+        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository,IGenericRepository<Domain.Entities.Team.Team> teamRepository)
         {
             _userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
             _positionRepository = positionRepository;
-            this.kpiDB = kpiDB;
             _teamRepository = teamRepository;
         }
         public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)

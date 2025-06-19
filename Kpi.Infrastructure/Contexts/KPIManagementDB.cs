@@ -32,10 +32,6 @@ namespace Kpi.Infrastructure.Contexts
         public DbSet<Position> Positions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User>()
-            .HasIndex(x => x.UserName)
-            .IsUnique();
-
             modelBuilder.Entity<Team>()
                 .HasMany(t => t.Users)
                 .WithOne(u => u.Team)
