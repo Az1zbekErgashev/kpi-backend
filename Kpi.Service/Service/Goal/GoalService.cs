@@ -244,7 +244,8 @@ namespace Kpi.Service.Service.Goal
             {
                 Content = dto.Comment,
                 Status = dto.Status ? Domain.Enum.GoalStatus.Approved : Domain.Enum.GoalStatus.Returned,
-                GoalId = existGoal.Id
+                GoalId = existGoal.Id,
+                CreatedById = GetUserIdFromContext()
             };
 
             await _coomentRepository.CreateAsync(newComment);
