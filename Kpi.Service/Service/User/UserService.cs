@@ -37,15 +37,18 @@ namespace Kpi.Service.Service.User
 
             if (existUser != null) throw new KpiException(400, "this_user_already_exist");
 
-            var isExistTeam = await _teamRepository.GetAll(
-                x => x.Id == dto.TeamId &&
-                     x.IsDeleted == 0 &&
-                     x.Users.Any(u => u.Role == Role.TeamLeader && u.IsDeleted == 0)
-            ).FirstOrDefaultAsync();
-
-            if (isExistTeam != null)
+            if (dto.Role == Role.TeamLeader)
             {
-                throw new KpiException(400, "team_already_has_team_leader");
+                var isExistTeamLeader = await _teamRepository.GetAll(
+                    x => x.Id == dto.TeamId &&
+                         x.IsDeleted == 0 &&
+                         x.Users.Any(u => u.Role == Role.TeamLeader && u.IsDeleted == 0)
+                ).FirstOrDefaultAsync();
+
+                if (isExistTeamLeader != null)
+                {
+                    throw new KpiException(400, "team_already_has_team_leader");
+                }
             }
 
             var user = new Domain.Entities.User.User()
@@ -74,15 +77,18 @@ namespace Kpi.Service.Service.User
 
             if (existuserName != null) throw new KpiException(400, "this_user_already_exist");
 
-            var isExistTeam = await _teamRepository.GetAll(
-                x => x.Id == dto.TeamId &&
-                     x.IsDeleted == 0 &&
-                     x.Users.Any(u => u.Role == Role.TeamLeader && u.IsDeleted == 0)
-            ).FirstOrDefaultAsync();
-
-            if (isExistTeam != null)
+            if (dto.Role == Role.TeamLeader)
             {
-                throw new KpiException(400, "team_already_has_team_leader");
+                var isExistTeamLeader = await _teamRepository.GetAll(
+                    x => x.Id == dto.TeamId &&
+                         x.IsDeleted == 0 &&
+                         x.Users.Any(u => u.Role == Role.TeamLeader && u.IsDeleted == 0)
+                ).FirstOrDefaultAsync();
+
+                if (isExistTeamLeader != null)
+                {
+                    throw new KpiException(400, "team_already_has_team_leader");
+                }
             }
 
             existUser.Role = dto.Role;
