@@ -81,11 +81,16 @@ namespace Kpi.Api.Controllers.Goal
         [HttpGet("by-user-token")]
         [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
-        public async ValueTask<IActionResult> GetByTokenIdAsync(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetByTokenIdAsync(id));
+        public async ValueTask<IActionResult> GetByTokenIdAsync(int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByTokenIdAsync(year));
 
         [HttpGet("team-by-id")]
         [ProducesResponseType(typeof(ResponseModel<TeamAndRoom>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetRoomAndTeam(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetRoomAndTeam(id));
+        
+        [HttpGet("team-by-token")]
+        [ProducesResponseType(typeof(ResponseModel<TeamAndRoom>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetRoomAndTeamByToken() => ResponseHandler.ReturnIActionResponse(await goalService.GetRoomAndTeamByToken());
     }
 }

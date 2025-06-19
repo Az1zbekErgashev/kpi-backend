@@ -14,10 +14,12 @@ namespace Kpi.Service.Interfaces.Goal
         ValueTask<bool> SendGoalRequest(GoalForSendDTO @dto);
         ValueTask<GoalModel> GetByIdAsync(int id);
         ValueTask<GoalModel> GetByUserIdAsync(int id, int year);
-        ValueTask<GoalModel> GetByTokenIdAsync(int id);
+        ValueTask<GoalModel> GetByTokenIdAsync(int year);
         ValueTask<GoalModel> GetByCeoGoal(int year);
         ValueTask<GoalModel> GetByTeamIdAsync(int id, int year);
         ValueTask<GoalModel> GetTeamLeaderGoal(int year);
         ValueTask<TeamAndRoom> GetRoomAndTeam(int teamId);
+        ValueTask<TeamAndRoom> GetRoomAndTeamByToken();
+
     }
 }
