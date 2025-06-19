@@ -220,7 +220,7 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<PagedResult<UserModelForCEO>> GetUsersForCEO(UserForFilterCEOSideDTO dto)
         {
-            var query = _userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader && x.IsDeleted == 0)
+            var query = _userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader && x.IsDeleted == 0 && x.Team.IsDeleted != 0 && x.Room.IsDeleted != 0)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -315,7 +315,7 @@ namespace Kpi.Service.Service.User
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var users = _userRepository.GetAll(x => x.IsDeleted == 0 && x.TeamId != null && x.RoomId != null)
+            var users = _userRepository.GetAll(x => x.IsDeleted == 0 && x.Team.IsDeleted != 0 && x.Room.IsDeleted != 0)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -400,7 +400,7 @@ namespace Kpi.Service.Service.User
 
             if (role != Role.TeamLeader) throw new KpiException(400, "inccorect_role");
 
-            var users = _userRepository.GetAll(x => x.IsDeleted == 0 && x.Id == userId && x.TeamId == teamId)
+            var users = _userRepository.GetAll(x => x.IsDeleted == 0 && x.Id == userId && x.TeamId == teamId && x.Team.IsDeleted != 0 && x.Room.IsDeleted != 0)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
