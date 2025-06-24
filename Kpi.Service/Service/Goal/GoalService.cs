@@ -52,7 +52,7 @@ namespace Kpi.Service.Service.Goal
         {
             var goal = new Domain.Entities.Goal.Goal
             {
-                CreatedAt = dto.CreatetAt ?? DateTime.UtcNow,
+                CreatedAt = (DateTime)dto.CreatetAt,
                 CreatedById = userId,
                 Status = Domain.Enum.GoalStatus.PendingReview,
                 Comments = new List<Domain.Entities.Comment.Comment>()
@@ -224,10 +224,13 @@ namespace Kpi.Service.Service.Goal
 
             if (existUser == null) throw new KpiException(404, "user_not_found");
 
-            var existGoal = existUser.CreatedGoals.Where(x => x.CreatedAt.Year == DateTime.UtcNow.Year && x.IsDeleted == 0).FirstOrDefault();
+            DateTime parseYear = (DateTime)(dto.CreatetAt == null ? DateTime.UtcNow : dto.CreatetAt);
+
+            var existGoal = existUser.CreatedGoals.Where(x => x.CreatedAt.Year == parseYear.Year && x.IsDeleted == 0).FirstOrDefault();
 
             if (existGoal != null) throw new KpiException(400, "goal_exist");
 
+            dto.CreatetAt = parseYear;
             return await CreateAsync(dto, userId);
         }
 

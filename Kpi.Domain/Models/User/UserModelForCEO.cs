@@ -17,6 +17,8 @@ namespace Kpi.Domain.Models.User
 
         public virtual UserModelForCEO MapFromEntity(Entities.User.User entity, string? year)
         {
+            int parsedYear = !string.IsNullOrEmpty(year) ? int.Parse(year) : DateTime.UtcNow.Year;
+
             Id = entity.Id;
             UserName = entity.UserName;
             FullName = entity.FullName;
@@ -25,7 +27,7 @@ namespace Kpi.Domain.Models.User
             RoomId = entity?.Room?.IsDeleted == 0 ? entity?.RoomId : null;
             TeamId = entity?.Team?.IsDeleted == 0 ? entity?.TeamId : null;
             Status = entity?.CreatedGoals
-             .FirstOrDefault(x => x.CreatedAt.Year == DateTime.UtcNow.Year && x.IsDeleted == 0)?.Status
+             .FirstOrDefault(x => x.CreatedAt.Year == parsedYear && x.IsDeleted == 0)?.Status
              ?? GoalStatus.NoWritte;
             Year = year;
             Position = entity?.Position is null ? null : new PositionModel().MapFromEntity(entity.Position);

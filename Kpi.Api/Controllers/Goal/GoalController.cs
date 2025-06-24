@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using Kpi.Domain.Models.Goal;
+﻿using Kpi.Domain.Models.Goal;
 using Kpi.Domain.Models.Response;
 using Kpi.Domain.Models.Team;
 using Kpi.Service.DTOs.Goal;
@@ -76,7 +75,6 @@ namespace Kpi.Api.Controllers.Goal
         [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetByCeoGoal([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByCeoGoal(year));
-
 
         [HttpGet("by-user-token")]
         [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
