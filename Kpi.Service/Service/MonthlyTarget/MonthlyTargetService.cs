@@ -214,6 +214,7 @@ namespace Kpi.Service.Service.MonthlyTarget
         {
             var query = userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader && x.IsDeleted == 0 && x.Team.IsDeleted == 0 && x.Room.IsDeleted == 0)
                 .Include(x => x.CreatedGoals)
+                .ThenInclude(x => x.MonthlyPerformance)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
                 .Include(x => x.Room)
@@ -256,6 +257,84 @@ namespace Kpi.Service.Service.MonthlyTarget
             query = query.ToPagedList(dto);
 
             var list = await query.ToListAsync();
+
+            string filterYear = dto?.Year.ToString() ?? DateTime.UtcNow.Year.ToString();
+
+            List<MonthlyPerformanceListModel> models = list.Select(
+                f => new MonthlyPerformanceListModel().MapFromEntity(f, filterYear, dto.Month.ToString()))
+                .ToList();
+
+            var pagedResult = PagedResult<MonthlyPerformanceListModel>.Create(models,
+                totalCount,
+                itemsPerPage,
+                models.Count,
+                dto.PageIndex,
+                totalPages
+                );
+
+            return pagedResult;
+        }
+
+        public async ValueTask<PagedResult<MonthlyPerformanceListModel>> GetTeamLeader(MonthlyPerformanceForFilterDTO dto)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+           ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            if (role != Role.TeamLeader) throw new KpiException(400, "inccorect_role");
+
+            var users = userRepository.GetAll(x => x.IsDeleted == 0 && x.Id == userId && x.TeamId == teamId && x.Team.IsDeleted == 0 && x.Room.IsDeleted == 0)
+                .Include(x => x.CreatedGoals)
+                .ThenInclude(x => x.MonthlyPerformance)
+                .Include(x => x.Team)
+                .Include(x => x.Evaluations)
+                .Include(x => x.Room)
+                .Include(x => x.Position)
+                .OrderByDescending(x => x.UpdatedAt)
+                .AsQueryable();
+
+
+            int totalCount = await users.CountAsync();
+
+            if (totalCount == 0)
+            {
+                return PagedResult<MonthlyPerformanceListModel>.Create(
+                    Enumerable.Empty<MonthlyPerformanceListModel>(),
+                    0,
+                    dto.PageSize,
+                    0,
+                    dto.PageIndex,
+                    0
+                );
+            }
+
+            if (dto.PageIndex == 0)
+            {
+                dto.PageIndex = 1;
+            }
+
+            if (dto.PageSize == 0)
+            {
+                dto.PageSize = totalCount;
+            }
+
+            int itemsPerPage = dto.PageSize;
+            int totalPages = (totalCount / itemsPerPage) + (totalCount % itemsPerPage == 0 ? 0 : 1);
+
+            if (dto.PageIndex > totalPages)
+            {
+                dto.PageIndex = totalPages;
+            }
+
+            users = users.ToPagedList(dto);
+
+            var list = await users.ToListAsync();
 
             string filterYear = dto?.Year.ToString() ?? DateTime.UtcNow.Year.ToString();
 

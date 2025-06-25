@@ -113,7 +113,8 @@ namespace Kpi.Service.Service.Goal
                     GoalId = goal.Id,
                     Year = dto.CreatetAt.Value.Year,
                     Month = i,
-                    IsSended = false
+                    IsSended = false,
+                    
                 };
 
                 await monthlyPerformanceRepository.CreateAsync(monthlyPerformance);

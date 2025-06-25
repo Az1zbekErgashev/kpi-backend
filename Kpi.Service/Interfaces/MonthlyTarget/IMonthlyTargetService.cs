@@ -11,5 +11,6 @@ namespace Kpi.Service.Interfaces.MonthlyTarget
         ValueTask<bool> CreateAsync(CreateMonthlyTargetGroupDto dto);
         ValueTask<PagedResult<MonthlyPerformanceListModel>> GetAllAsync([Required] MonthlyPerformanceForFilterDTO dto);
         ValueTask<PagedResult<MonthlyPerformanceListModel>> GetUsersForCEO([Required] MonthlyPerformanceForFilterDTO dto);
+        ValueTask<PagedResult<MonthlyPerformanceListModel>> GetTeamLeader(MonthlyPerformanceForFilterDTO dto);
     }
 }
