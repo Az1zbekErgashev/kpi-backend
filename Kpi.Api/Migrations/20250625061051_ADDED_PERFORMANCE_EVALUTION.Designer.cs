@@ -3,6 +3,7 @@ using System;
 using Kpi.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kpi.Api.Migrations
 {
     [DbContext(typeof(KpiDB))]
-    partial class KpiDBModelSnapshot : ModelSnapshot
+    [Migration("20250625061051_ADDED_PERFORMANCE_EVALUTION")]
+    partial class ADDED_PERFORMANCE_EVALUTION
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2744,12 +2747,12 @@ namespace Kpi.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 6, 25, 11, 35, 29, 987, DateTimeKind.Utc).AddTicks(6615),
+                            CreatedAt = new DateTime(2025, 6, 25, 6, 10, 51, 198, DateTimeKind.Utc).AddTicks(1383),
                             FullName = "System Admin",
                             IsDeleted = 0,
                             Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
                             Role = 0,
-                            UpdatedAt = new DateTime(2025, 6, 25, 11, 35, 29, 987, DateTimeKind.Utc).AddTicks(6619),
+                            UpdatedAt = new DateTime(2025, 6, 25, 6, 10, 51, 198, DateTimeKind.Utc).AddTicks(1385),
                             UserName = "admin"
                         });
                 });
@@ -2782,7 +2785,7 @@ namespace Kpi.Api.Migrations
                         .IsRequired();
 
                     b.HasOne("Kpi.Domain.Entities.Goal.MonthlyPerformance", "MonthlyPerformance")
-                        .WithMany("MonthlyTargetComment")
+                        .WithMany("Comments")
                         .HasForeignKey("MonthlyPerformanceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2849,7 +2852,7 @@ namespace Kpi.Api.Migrations
                     b.HasOne("Kpi.Domain.Entities.Goal.Goal", "Goal")
                         .WithMany("MonthlyPerformance")
                         .HasForeignKey("GoalId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Goal");
@@ -2921,7 +2924,7 @@ namespace Kpi.Api.Migrations
 
             modelBuilder.Entity("Kpi.Domain.Entities.Goal.MonthlyPerformance", b =>
                 {
-                    b.Navigation("MonthlyTargetComment");
+                    b.Navigation("Comments");
 
                     b.Navigation("MonthlyTargetValue");
                 });

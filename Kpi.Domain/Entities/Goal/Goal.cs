@@ -10,8 +10,6 @@ namespace Kpi.Domain.Entities.Goal
         [Required]
         public ICollection<Division> Divisions { get; set; }
         public virtual ICollection<Comment.Comment> Comments { get; set; }
-        public int? AssignedToId { get; set; }
-        public virtual User.User AssignedTo { get; set; }
 
         [Required]
         public int CreatedById { get; set; }
@@ -19,7 +17,6 @@ namespace Kpi.Domain.Entities.Goal
 
         [Required]
         public GoalStatus Status { get; set; }
-
-        public virtual ICollection<MonthlyTarget> MonthlyTargets { get; set; }
+        public ICollection<MonthlyPerformance> MonthlyPerformance { get; set; }
     }
 }

@@ -36,14 +36,14 @@ namespace Kpi.Api.Controllers.User
         [Authorize(Roles = "Ceo,Director")]
         [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
-        public async ValueTask<IActionResult> GetUsersForCEO([FromQuery] UserForFilterCEOSideDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetUsersForCEO(@dto));  
-        
+        public async ValueTask<IActionResult> GetUsersForCEO([FromQuery] UserForFilterCEOSideDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetUsersForCEO(@dto));
+
         [HttpGet("filter-teams")]
         [Authorize(Roles = "TeamLeader,TeamMember")]
         [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
-        public async ValueTask<IActionResult> GetUserListWithGoal([FromQuery] UserForFilterCEOSideDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetUserListWithGoal(@dto));      
-        
+        public async ValueTask<IActionResult> GetUserListWithGoal([FromQuery] UserForFilterCEOSideDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.GetUserListWithGoal(@dto));
+
         [HttpGet("team-leader")]
         [Authorize(Roles = "TeamLeader")]
         [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]

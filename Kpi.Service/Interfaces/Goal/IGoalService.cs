@@ -20,6 +20,6 @@ namespace Kpi.Service.Interfaces.Goal
         ValueTask<GoalModel> GetTeamLeaderGoal(int year);
         ValueTask<TeamAndRoom> GetRoomAndTeam(int teamId);
         ValueTask<TeamAndRoom> GetRoomAndTeamByToken();
-
+        ValueTask<bool> DeleteAllData();
     }
 }

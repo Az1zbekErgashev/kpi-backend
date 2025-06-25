@@ -1,8 +1,6 @@
-﻿using DocumentFormat.OpenXml.InkML;
-using Kpi.Domain.Enum;
+﻿using Kpi.Domain.Enum;
 using Kpi.Domain.Models.PagedResult;
 using Kpi.Domain.Models.User;
-using Kpi.Infrastructure.Contexts;
 using Kpi.Service.DTOs.User;
 using Kpi.Service.Exception;
 using Kpi.Service.Interfaces.IRepositories;
@@ -22,7 +20,7 @@ namespace Kpi.Service.Service.User
         private readonly IGenericRepository<Domain.Entities.User.Position> _positionRepository;
         private readonly IGenericRepository<Domain.Entities.Team.Team> _teamRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
-        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository,IGenericRepository<Domain.Entities.Team.Team> teamRepository)
+        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository, IGenericRepository<Domain.Entities.Team.Team> teamRepository)
         {
             _userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
@@ -120,7 +118,6 @@ namespace Kpi.Service.Service.User
         public async ValueTask<PagedResult<UserModel>> GetAllAsync(UserForFilterDTO @dto)
         {
             var query = _userRepository.GetAll(x => x.IsDeleted == dto.IsDeleted && x.Id != 1)
-                .Include(x => x.AssignedGoals)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -188,7 +185,6 @@ namespace Kpi.Service.Service.User
         public async ValueTask<UserModel> GetByIdAsync([Required] int id)
         {
             var existUser = await _userRepository.GetAll(x => x.Id == id && x.IsDeleted == 0)
-                .Include(x => x.AssignedGoals)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -209,7 +205,6 @@ namespace Kpi.Service.Service.User
             }
 
             var existUser = await _userRepository.GetAll(x => x.Id == userId && x.IsDeleted == 0)
-                .Include(x => x.AssignedGoals)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)

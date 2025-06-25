@@ -39,8 +39,8 @@ namespace Kpi.Service.Service.Auth
             var token = await GenerateToken(existUser.Id, existUser.Role, existUser.TeamId);
 
             return new AuthModel().MapFromEntity(token, existUser);
-        }    
-        
+        }
+
         public async ValueTask<AuthModel> LoginUserAsync(UserForLoginDTO @dto)
         {
             var existUser = await _userRepository.GetAll(x => x.UserName == dto.UserName && x.Password.Equals(dto.Password.Encrypt()) && x.IsDeleted == 0 && (x.Role == Domain.Enum.Role.TeamMember || x.Role == Domain.Enum.Role.TeamLeader)).FirstOrDefaultAsync();
@@ -71,7 +71,7 @@ namespace Kpi.Service.Service.Auth
                 new Claim(ClaimTypes.Role, role.ToString()),
             };
 
-            if(teamId != null)
+            if (teamId != null)
             {
                 claims.Add(new Claim(ClaimTypes.Country, teamId.ToString()));
             }

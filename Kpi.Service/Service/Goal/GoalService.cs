@@ -21,31 +21,31 @@ namespace Kpi.Service.Service.Goal
         private readonly IGenericRepository<Domain.Entities.Goal.KpiGoal> _kpiGoalRepository;
         private readonly IGenericRepository<Domain.Entities.Goal.Goal> _goalRepository;
         private readonly IGenericRepository<Domain.Entities.Goal.Division> _divisionRepository;
-        private readonly IGenericRepository<Domain.Entities.Goal.MonthlyTarget> _monthlyTargetRepository;
         private readonly IGenericRepository<Domain.Entities.Goal.TargetValue> _targetValueTargetRepository;
         private readonly IGenericRepository<Domain.Entities.User.User> _userRepository;
         private readonly IGenericRepository<Domain.Entities.Comment.Comment> _coomentRepository;
         private readonly IGenericRepository<Domain.Entities.Team.Team> teamRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly IGenericRepository<Domain.Entities.Goal.MonthlyPerformance> monthlyPerformanceRepository;
         public GoalService(IGenericRepository<KpiGoal> kpiGoalRepository,
             IGenericRepository<Division> divisionRepository,
-            IGenericRepository<MonthlyTarget> monthlyTargetRepository,
             IGenericRepository<TargetValue> targetValueTargetRepository,
             IGenericRepository<Domain.Entities.User.User> userRepository,
             IHttpContextAccessor httpContextAccessor,
             IGenericRepository<Domain.Entities.Goal.Goal> goalRepository,
             IGenericRepository<Comment> coomentRepository,
-            IGenericRepository<Domain.Entities.Team.Team> teamRepository)
+            IGenericRepository<Domain.Entities.Team.Team> teamRepository,
+            IGenericRepository<MonthlyPerformance> monthlyPerformanceRepository)
         {
             _kpiGoalRepository = kpiGoalRepository;
             _divisionRepository = divisionRepository;
-            _monthlyTargetRepository = monthlyTargetRepository;
             _targetValueTargetRepository = targetValueTargetRepository;
             _userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
             _goalRepository = goalRepository;
             _coomentRepository = coomentRepository;
             this.teamRepository = teamRepository;
+            this.monthlyPerformanceRepository = monthlyPerformanceRepository;
         }
 
         public async ValueTask<bool> CreateAsync(GoalForCreationDTO @dto, int userId)
@@ -106,6 +106,21 @@ namespace Kpi.Service.Service.Goal
             }
             await _kpiGoalRepository.SaveChangesAsync();
 
+            for (int i = 0; i <= 11; i++)
+            {
+                var monthlyPerformance = new MonthlyPerformance
+                {
+                    GoalId = goal.Id,
+                    Year = dto.CreatetAt.Value.Year,
+                    Month = i,
+                    IsSended = false
+                };
+
+                await monthlyPerformanceRepository.CreateAsync(monthlyPerformance);
+            }
+
+            await monthlyPerformanceRepository.SaveChangesAsync();
+
             return true;
         }
 
@@ -116,12 +131,10 @@ namespace Kpi.Service.Service.Goal
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Room)
-                .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
                 .ThenInclude(x => x.Goals)
                 .ThenInclude(x => x.TargetValue)
-                .Include(x => x.MonthlyTargets)
                 .FirstOrDefaultAsync();
 
             if (model == null) throw new KpiException(404, "goal_not_found");
@@ -136,12 +149,10 @@ namespace Kpi.Service.Service.Goal
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Room)
-                .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
                 .ThenInclude(x => x.Goals)
                 .ThenInclude(x => x.TargetValue)
-                .Include(x => x.MonthlyTargets)
                 .FirstOrDefaultAsync();
 
             if (model == null) throw new KpiException(404, "goal_not_found");
@@ -156,12 +167,10 @@ namespace Kpi.Service.Service.Goal
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Room)
-                .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
                 .ThenInclude(x => x.Goals)
                 .ThenInclude(x => x.TargetValue)
-                .Include(x => x.MonthlyTargets)
                 .FirstOrDefaultAsync();
 
             if (model == null) throw new KpiException(404, "goal_not_found");
@@ -267,12 +276,10 @@ namespace Kpi.Service.Service.Goal
         {
             var existGoal = await _goalRepository.GetAll(x => x.Id == dto.GoalId && x.IsDeleted == 0)
                 .Include(x => x.CreatedBy)
-                .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
                     .ThenInclude(d => d.Goals)
                         .ThenInclude(g => g.TargetValue)
-                .Include(x => x.MonthlyTargets)
                 .FirstOrDefaultAsync();
 
             if (existGoal == null)
@@ -491,12 +498,10 @@ namespace Kpi.Service.Service.Goal
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Room)
-                .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
                 .ThenInclude(x => x.Goals)
                 .ThenInclude(x => x.TargetValue)
-                .Include(x => x.MonthlyTargets)
                 .FirstOrDefaultAsync();
 
             if (model == null) throw new KpiException(404, "goal_not_found");
@@ -527,12 +532,10 @@ namespace Kpi.Service.Service.Goal
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Room)
-                .Include(x => x.AssignedTo)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
                 .ThenInclude(x => x.Goals)
                 .ThenInclude(x => x.TargetValue)
-                .Include(x => x.MonthlyTargets)
                 .FirstOrDefaultAsync();
 
             if (model == null) throw new KpiException(404, "goal_not_found");
@@ -555,7 +558,7 @@ namespace Kpi.Service.Service.Goal
 
             return new TeamAndRoom().MapFromEntity(team.Id, roomId, teamName, roomName);
         }
-        
+
         public async ValueTask<TeamAndRoom> GetRoomAndTeamByToken()
         {
             var user = httpContextAccessor?.HttpContext?.User
@@ -580,6 +583,20 @@ namespace Kpi.Service.Service.Goal
             int? roomId = activeUsers?.FirstOrDefault()?.Room?.Id;
 
             return new TeamAndRoom().MapFromEntity(team.Id, roomId, teamName, roomName);
+        }
+
+        public async ValueTask<bool> DeleteAllData()
+        {
+            var allGoals = await _goalRepository.GetAll().ToListAsync();
+
+            foreach (var item in allGoals)
+            {
+                await _goalRepository.DeleteAsync(item.Id);
+            }
+
+            await _goalRepository.SaveChangesAsync();
+
+            return true;
         }
     }
 }

@@ -26,10 +26,12 @@ namespace Kpi.Infrastructure.Contexts
         public DbSet<KpiGoal> KpiGoals { get; set; }
         public DbSet<Division> Divisions { get; set; }
         public DbSet<TargetValue> TargetValues { get; set; }
-        public DbSet<MonthlyTarget> MonthlyTargets { get; set; }
+        public DbSet<MonthlyPerformance> MonthlyPerformances { get; set; }
+        public DbSet<MonthlyTargetValue> MonthlyTargetValues { get; set; }
         public DbSet<Evaluation> Evaluations { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Position> Positions { get; set; }
+        public DbSet<MonthlyTargetComment> MonthlyTargetComments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Team>()
@@ -54,12 +56,6 @@ namespace Kpi.Infrastructure.Contexts
                 .HasForeignKey(g => g.CreatedById)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.AssignedGoals)
-                .WithOne(g => g.AssignedTo)
-                .HasForeignKey(g => g.AssignedToId)
-                .OnDelete(DeleteBehavior.SetNull);
-
             modelBuilder.Entity<Evaluation>()
                 .HasOne(e => e.EvaluatedBy)
                 .WithMany(u => u.Evaluations)
@@ -79,9 +75,15 @@ namespace Kpi.Infrastructure.Contexts
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Goal>()
-                .HasMany(e => e.MonthlyTargets)
+                .HasMany(e => e.MonthlyPerformance)
                 .WithOne(mt => mt.Goal)
                 .HasForeignKey(mt => mt.GoalId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MonthlyPerformance>()
+                .HasMany(e => e.MonthlyTargetComment)
+                .WithOne(mt => mt.MonthlyPerformance)
+                .HasForeignKey(mt => mt.MonthlyPerformanceId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Comment>()
@@ -89,6 +91,12 @@ namespace Kpi.Infrastructure.Contexts
                 .WithMany()
                 .HasForeignKey(e => e.CreatedById)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MonthlyPerformance>()
+               .HasMany(m => m.MonthlyTargetValue)
+               .WithOne(x => x.MonthlyPerformance)
+               .HasForeignKey(t => t.MonthlyPerformanceId)
+               .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<KpiGoal>(entity =>
             {
@@ -101,32 +109,6 @@ namespace Kpi.Infrastructure.Contexts
                       .WithOne(tv => tv.KpiGoal)
                       .HasForeignKey<TargetValue>(tv => tv.KpiGoalId)
                       .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            modelBuilder.Entity<MonthlyTarget>(entity =>
-            {
-                entity.HasOne(e => e.Goal)
-                      .WithMany(k => k.MonthlyTargets)
-                      .HasForeignKey(e => e.GoalId)
-                      .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(e => e.CreatedBy)
-                      .WithMany()
-                      .HasForeignKey(e => e.CreatedById)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(e => e.AssignedTo)
-                      .WithMany()
-                      .HasForeignKey(e => e.AssignedToId)
-                      .OnDelete(DeleteBehavior.Restrict);
-            });
-
-            modelBuilder.Entity<Comment>(entity =>
-            {
-                entity.HasOne(e => e.CreatedBy)
-                      .WithMany()
-                      .HasForeignKey(e => e.CreatedById)
-                      .OnDelete(DeleteBehavior.Restrict);
             });
 
 

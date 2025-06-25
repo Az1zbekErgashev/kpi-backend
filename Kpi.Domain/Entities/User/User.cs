@@ -25,6 +25,5 @@ public class User : Auditable
     public int? PositionId { get; set; }
 
     public ICollection<Goal.Goal> CreatedGoals { get; set; }
-    public ICollection<Goal.Goal> AssignedGoals { get; set; }
     public ICollection<Evaluation> Evaluations { get; set; }
 }

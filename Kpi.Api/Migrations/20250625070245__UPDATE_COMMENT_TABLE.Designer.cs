@@ -3,6 +3,7 @@ using System;
 using Kpi.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kpi.Api.Migrations
 {
     [DbContext(typeof(KpiDB))]
-    partial class KpiDBModelSnapshot : ModelSnapshot
+    [Migration("20250625070245__UPDATE_COMMENT_TABLE")]
+    partial class _UPDATE_COMMENT_TABLE
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2744,12 +2747,12 @@ namespace Kpi.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 6, 25, 11, 35, 29, 987, DateTimeKind.Utc).AddTicks(6615),
+                            CreatedAt = new DateTime(2025, 6, 25, 7, 2, 45, 107, DateTimeKind.Utc).AddTicks(5627),
                             FullName = "System Admin",
                             IsDeleted = 0,
                             Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
                             Role = 0,
-                            UpdatedAt = new DateTime(2025, 6, 25, 11, 35, 29, 987, DateTimeKind.Utc).AddTicks(6619),
+                            UpdatedAt = new DateTime(2025, 6, 25, 7, 2, 45, 107, DateTimeKind.Utc).AddTicks(5629),
                             UserName = "admin"
                         });
                 });
@@ -2849,7 +2852,7 @@ namespace Kpi.Api.Migrations
                     b.HasOne("Kpi.Domain.Entities.Goal.Goal", "Goal")
                         .WithMany("MonthlyPerformance")
                         .HasForeignKey("GoalId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Goal");
