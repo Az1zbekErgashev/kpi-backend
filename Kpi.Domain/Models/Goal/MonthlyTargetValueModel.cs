@@ -1,10 +1,4 @@
 ﻿using Kpi.Domain.Commons;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kpi.Domain.Models.Goal
 {
@@ -19,12 +13,14 @@ namespace Kpi.Domain.Models.Goal
 
         public virtual MonthlyTargetValueModel MapFromEntity(Domain.Entities.Goal.MonthlyTargetValue entity)
         {
-            ValueNumber = entity.ValueNumber;
             ValueRatioStatus = entity.ValueRatioStatus;
             ValueNumber = entity.ValueNumber;
             ValueText = entity.ValueText;
+            ValueRatio = entity.ValueRatio;
             TargetValueId = entity.TargetValueId;
             MonthlyPerformanceId = entity.MonthlyPerformanceId;
+            Id = entity.Id;
+            CreatedAt = entity.CreatedAt;
             return this;
         }
     }
