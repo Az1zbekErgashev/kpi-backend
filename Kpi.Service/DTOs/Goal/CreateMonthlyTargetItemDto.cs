@@ -4,6 +4,7 @@ namespace Kpi.Service.DTOs.Goal
 {
     public class CreateMonthlyTargetItemDto
     {
+        public int? Id { get; set; }
         public double? ValueRatio { get; set; }
         public double? ValueRatioStatus { get; set; }
         public double? ValueNumber { get; set; }

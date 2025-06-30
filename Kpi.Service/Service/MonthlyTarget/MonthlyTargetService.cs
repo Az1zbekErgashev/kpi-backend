@@ -103,6 +103,51 @@ namespace Kpi.Service.Service.MonthlyTarget
             return true;
         }
 
+        public async ValueTask<bool> UpdateAsync(CreateMonthlyTargetGroupDto dto)
+        {
+            var existGoal = await goalRepository.GetAll(x => x.Id == dto.GoalId && x.CreatedAt.Year == dto.Year).Include(x => x.Divisions).ThenInclude(x => x.Goals)
+              .ThenInclude(x => x.TargetValue).FirstOrDefaultAsync();
+
+            if (existGoal is null) throw new KpiException(404, "goal_not_found");
+
+            var existMonthlyEvalutions = await monthlyPerformanceRepository.GetAsync(x => x.Year == dto.Year && x.Month == dto.Month && x.GoalId == existGoal.Id);
+
+            if (existMonthlyEvalutions is null) throw new KpiException(404, "monthly_not_found");
+
+            foreach (var targetDto in dto.Targets)
+            {
+                var alreadyExists = await monthlyTargetValueRepository
+                                                    .GetAsync(x => x.TargetValueId == targetDto.TargetValueId && x.MonthlyPerformanceId == existMonthlyEvalutions.Id && x.Id == targetDto.Id);
+
+                if (alreadyExists == null)
+                {
+                    throw new KpiException(404, "goal_not_found");
+                }
+
+                alreadyExists.ValueText = targetDto.ValueText;
+                alreadyExists.ValueRatio = targetDto.ValueRatio;
+                alreadyExists.ValueNumber = targetDto.ValueNumber;
+                alreadyExists.ValueRatioStatus = targetDto.ValueRatioStatus;
+                alreadyExists.ValueText = targetDto.ValueText;
+
+                monthlyTargetValueRepository.UpdateAsync(alreadyExists);
+            }
+
+            var comment = new Domain.Entities.Comment.MonthlyTargetComment
+            {
+                Content = dto.Comment,
+                Status = Domain.Enum.GoalStatus.PendingReview,
+                CreatedById = GetUserIdFromContext(),
+                MonthlyPerformanceId = existMonthlyEvalutions.Id
+            };
+
+            await monthlyTargetCommentRepository.CreateAsync(comment);
+            await monthlyTargetValueRepository.SaveChangesAsync();
+            await monthlyTargetCommentRepository.SaveChangesAsync();
+
+            return true;
+        }
+
         private int GetUserIdFromContext()
         {
             if (!int.TryParse(httpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
