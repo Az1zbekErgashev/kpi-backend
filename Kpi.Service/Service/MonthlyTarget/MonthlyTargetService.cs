@@ -63,17 +63,23 @@ namespace Kpi.Service.Service.MonthlyTarget
 
                 if (existTargetValue.Type != Domain.Enum.TargetValueType.IndividualEvaluation || existTargetValue.Type != Domain.Enum.TargetValueType.LeaderEvaluation)
                 {
-                    var monthlyTarget = new Domain.Entities.Goal.MonthlyTargetValue
-                    {
-                        ValueRatio = targetDto.ValueRatio,
-                        ValueRatioStatus = targetDto.ValueRatioStatus,
-                        ValueNumber = targetDto.ValueNumber,
-                        ValueText = targetDto.ValueText,
-                        TargetValueId = targetDto.TargetValueId,
-                        MonthlyPerformanceId = existMonthlyEvalutions.Id
-                    };
+                    var alreadyExists = await monthlyTargetValueRepository
+                                                     .GetAsync(x => x.TargetValueId == targetDto.TargetValueId && x.MonthlyPerformanceId == existMonthlyEvalutions.Id);
 
-                    await monthlyTargetValueRepository.CreateAsync(monthlyTarget);
+                    if(alreadyExists == null)
+                    {
+                        var monthlyTarget = new Domain.Entities.Goal.MonthlyTargetValue
+                        {
+                            ValueRatio = targetDto.ValueRatio,
+                            ValueRatioStatus = targetDto.ValueRatioStatus,
+                            ValueNumber = targetDto.ValueNumber,
+                            ValueText = targetDto.ValueText,
+                            TargetValueId = targetDto.TargetValueId,
+                            MonthlyPerformanceId = existMonthlyEvalutions.Id
+                        };
+
+                       await monthlyTargetValueRepository.CreateAsync(monthlyTarget);
+                    }
                 }
             }
 
