@@ -29,8 +29,7 @@ namespace Kpi.Domain.Models.Goal
             Team = entity?.Team?.IsDeleted == 0 ? entity?.Team?.Name : null;
             RoomId = entity?.Room?.IsDeleted == 0 ? entity?.RoomId : null;
             TeamId = entity?.Team?.IsDeleted == 0 ? entity?.TeamId : null;
-            Status = entity?.CreatedGoals?.Where(x => x.CreatedAt.Year == int.Parse(year) && x.IsDeleted == 0)?.FirstOrDefault()?.MonthlyPerformance.Where(x => x.Year == int.Parse(year) && x.Month == int.Parse(month) && x.IsSended).FirstOrDefault()?.Status
-             ?? GoalStatus.NoWritte;
+           
             Year = year;
             Month = month;
             Position = entity?.Position is null ? null : new PositionModel().MapFromEntity(entity.Position);
