@@ -57,10 +57,16 @@ namespace Kpi.Infrastructure.Contexts
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Evaluation>()
-                .HasOne(e => e.EvaluatedBy)
+                .HasOne(e => e.User)
                 .WithMany(u => u.Evaluations)
-                .HasForeignKey(e => e.EvaluatedById)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);     
+            
+            modelBuilder.Entity<User>()
+                .HasMany(e => e.Evaluations)
+                .WithOne(u => u.User)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Goal>()
                 .HasMany(x => x.Divisions)

@@ -469,12 +469,7 @@ namespace Kpi.Service.Service.Goal
 
             return true;
         }
-        private int GetUserIdFromContext()
-        {
-            if (!int.TryParse(httpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-                throw new InvalidCredentialException();
-            return userId;
-        }
+      
 
         public async ValueTask<GoalModel> GetByTeamIdAsync(int id, int year)
         {
@@ -584,6 +579,13 @@ namespace Kpi.Service.Service.Goal
             int? roomId = activeUsers?.FirstOrDefault()?.Room?.Id;
 
             return new TeamAndRoom().MapFromEntity(team.Id, roomId, teamName, roomName);
+        }
+
+        private int GetUserIdFromContext()
+        {
+            if (!int.TryParse(httpContextAccessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+                throw new InvalidCredentialException();
+            return userId;
         }
 
         public async ValueTask<bool> DeleteAllData()

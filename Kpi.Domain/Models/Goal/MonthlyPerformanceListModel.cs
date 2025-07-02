@@ -20,6 +20,7 @@ namespace Kpi.Domain.Models.Goal
         public virtual MonthlyPerformanceListModel MapFromEntity(Domain.Entities.User.User entity, string year, string month)
         {
             int parsedYear = !string.IsNullOrEmpty(year) ? int.Parse(year) : DateTime.UtcNow.Year;
+            int parseMonth = !string.IsNullOrEmpty(month) ? int.Parse(month) : DateTime.UtcNow.Month;
 
             Id = entity.Id;
             UserName = entity.UserName;
@@ -28,7 +29,7 @@ namespace Kpi.Domain.Models.Goal
             Team = entity?.Team?.IsDeleted == 0 ? entity?.Team?.Name : null;
             RoomId = entity?.Room?.IsDeleted == 0 ? entity?.RoomId : null;
             TeamId = entity?.Team?.IsDeleted == 0 ? entity?.TeamId : null;
-            Status = entity?.CreatedGoals.Where(x => x.CreatedAt.Year == int.Parse(year) && x.IsDeleted == 0)?.FirstOrDefault()?.MonthlyPerformance.Where(x => x.Year == int.Parse(year) && x.Month == int.Parse(month) && x.IsSended).FirstOrDefault()?.Status
+            Status = entity?.CreatedGoals?.Where(x => x.CreatedAt.Year == int.Parse(year) && x.IsDeleted == 0)?.FirstOrDefault()?.MonthlyPerformance.Where(x => x.Year == int.Parse(year) && x.Month == int.Parse(month) && x.IsSended).FirstOrDefault()?.Status
              ?? GoalStatus.NoWritte;
             Year = year;
             Month = month;
