@@ -193,6 +193,7 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             var users = userRepository.GetAll(x => x.IsDeleted == 0 && x.Team.IsDeleted == 0 && x.Room.IsDeleted == 0)
                 .Include(x => x.CreatedGoals)
+                .ThenInclude(x => x.MonthlyPerformance)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
                 .Include(x => x.Room)
