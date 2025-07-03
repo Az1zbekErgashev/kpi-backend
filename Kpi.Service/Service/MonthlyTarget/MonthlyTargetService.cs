@@ -186,9 +186,9 @@ namespace Kpi.Service.Service.MonthlyTarget
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            bool isCurrentUser = dto.UserId == GetUserIdFromContext() && role == Role.TeamLeader ? true : false;
+            bool isTeamLeader = dto.UserId != GetUserIdFromContext() && role == Role.TeamLeader ? true : false;
 
-            return new MonthlyPerformanceModel().MapFromEntity(model, isCurrentUser);
+            return new MonthlyPerformanceModel().MapFromEntity(model, isTeamLeader);
         }
 
         public async ValueTask<PagedResult<MonthlyPerformanceListModel>> GetAllAsync([Required] MonthlyPerformanceForFilterDTO dto)
