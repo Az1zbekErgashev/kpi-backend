@@ -12,8 +12,9 @@ namespace Kpi.Domain.Models.Goal
         public virtual ICollection<MonthlyTargetValueModel> MonthlyTargetValue { get; set; }
         public virtual ICollection<MonthlyCommentModel> MonthlyTargetComment { get; set; }
         public bool IsSended { get; set; }
+        public bool? IsCurrent { get; set; }
 
-        public virtual MonthlyPerformanceModel MapFromEntity(Entities.Goal.MonthlyPerformance entity)
+        public virtual MonthlyPerformanceModel MapFromEntity(Entities.Goal.MonthlyPerformance entity, bool? isCurrent = false)
         {
             Id = entity.Id;
             CreatedAt = entity.CreatedAt;
@@ -24,6 +25,7 @@ namespace Kpi.Domain.Models.Goal
             MonthlyTargetComment = entity.MonthlyTargetComment is null ? null : entity.MonthlyTargetComment.Select(x => new MonthlyCommentModel().MapFromEntity(x)).ToList();
             MonthlyTargetValue = entity.MonthlyTargetValue is null ? null : entity.MonthlyTargetValue.Select(x => new MonthlyTargetValueModel().MapFromEntity(x)).ToList();
             IsSended = entity.IsSended;
+            IsCurrent = isCurrent;
             return this;
         }
     }

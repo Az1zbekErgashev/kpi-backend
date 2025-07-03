@@ -176,7 +176,19 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             if (model == null || model.Goal == null) throw new KpiException(404, "goal_not_found");
 
-            return new MonthlyPerformanceModel().MapFromEntity(model);
+            var user = httpContextAccessor?.HttpContext?.User
+               ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            bool isCurrentUser = dto.UserId == GetUserIdFromContext() && role == Role.TeamLeader ? true : false;
+
+            return new MonthlyPerformanceModel().MapFromEntity(model, isCurrentUser);
         }
 
         public async ValueTask<PagedResult<MonthlyPerformanceListModel>> GetAllAsync([Required] MonthlyPerformanceForFilterDTO dto)
