@@ -25,6 +25,7 @@ namespace Kpi.Service.Service.MonthlyTarget
         private readonly IGenericRepository<Domain.Entities.User.User> userRepository;
         private readonly IGenericRepository<Domain.Entities.Goal.TargetValue> targetValueRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly IGenericRepository<Domain.Entities.Team.Team> teamRepository;
         private readonly IGenericRepository<Domain.Entities.Comment.MonthlyTargetComment> monthlyTargetCommentRepository;
         public MonthlyTargetService(IGenericRepository<
             Domain.Entities.Goal.MonthlyPerformance> monthlyPerformanceRepository,
@@ -33,7 +34,8 @@ namespace Kpi.Service.Service.MonthlyTarget
             IGenericRepository<Domain.Entities.Goal.MonthlyTargetValue> monthlyTargetValueRepository,
             IGenericRepository<Domain.Entities.Comment.MonthlyTargetComment> monthlyTargetCommentRepository,
             IGenericRepository<Domain.Entities.Goal.TargetValue> targetValueRepository,
-            IGenericRepository<Domain.Entities.User.User> userRepository)
+            IGenericRepository<Domain.Entities.User.User> userRepository,
+            IGenericRepository<Domain.Entities.Team.Team> teamRepository)
         {
             this.monthlyPerformanceRepository = monthlyPerformanceRepository;
             this.goalRepository = goalRepository;
@@ -42,6 +44,7 @@ namespace Kpi.Service.Service.MonthlyTarget
             this.monthlyTargetCommentRepository = monthlyTargetCommentRepository;
             this.targetValueRepository = targetValueRepository;
             this.userRepository = userRepository;
+            this.teamRepository = teamRepository;
         }
 
         public async ValueTask<bool> CreateAsync(CreateMonthlyTargetGroupDto dto)
@@ -157,6 +160,23 @@ namespace Kpi.Service.Service.MonthlyTarget
 
         public async ValueTask<MonthlyPerformanceModel> GetByIdAsync(MonthlyPerformanceForFilterDTO dto)
         {
+            var user = httpContextAccessor?.HttpContext?.User
+               ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var existUserThisTeam = await teamRepository.GetAsync(
+              x => x.Id == teamId && x.Users.Any(o => o.Id == dto.UserId)
+              );
+
+            if (existUserThisTeam == null) throw new KpiException(404, "user_not_found");
+
+
             var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == dto.UserId && x.IsDeleted == 0 && x.Year == dto.Year && x.Month == dto.Month)
                 .Include(x => x.MonthlyTargetComment)
                 .Include(x => x.MonthlyTargetValue)
@@ -175,16 +195,6 @@ namespace Kpi.Service.Service.MonthlyTarget
                 .FirstOrDefaultAsync();
 
             if (model == null || model.Goal == null) throw new KpiException(404, "goal_not_found");
-
-            var user = httpContextAccessor?.HttpContext?.User
-               ?? throw new InvalidCredentialException();
-
-            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
-                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
-                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
-            {
-                throw new InvalidCredentialException("Invalid token claims.");
-            }
 
             bool isTeamLeader = dto.UserId != GetUserIdFromContext() && role == Role.TeamLeader ? true : false;
 
@@ -415,6 +425,20 @@ namespace Kpi.Service.Service.MonthlyTarget
                 );
 
             return pagedResult;
+        }
+
+        public async ValueTask<bool> ChangeMonthlyTargetStatus(ChangeGoalStatusDTO dto)
+        {
+            var existTargetValue = await monthlyPerformanceRepository.GetAsync(x => x.Id == dto.GoalId && x.IsDeleted == 0 && x.IsSended == true);
+
+            if(existTargetValue is null) throw new KpiException(400, "monthly_target_value_not_found");
+
+            existTargetValue.Status = dto.Status ? GoalStatus.Approved : GoalStatus.Returned;
+
+            monthlyPerformanceRepository.UpdateAsync(existTargetValue);
+            await monthlyPerformanceRepository.SaveChangesAsync();
+
+            return true;
         }
     }
 }

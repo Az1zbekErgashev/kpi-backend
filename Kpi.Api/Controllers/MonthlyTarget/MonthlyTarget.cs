@@ -23,6 +23,9 @@ namespace Kpi.Api.Controllers.MonthlyTarget
 
         [HttpPut]
         public async ValueTask<IActionResult> UpdateAsync(CreateMonthlyTargetGroupDto dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.UpdateAsync(dto));
+        
+        [HttpPut("change-status")]
+        public async ValueTask<IActionResult> ChangeStatus(ChangeGoalStatusDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.ChangeMonthlyTargetStatus(dto));
 
         [HttpGet]                  
         public async ValueTask<IActionResult> GetByYearAndMonth([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetByIdAsync(dto));
