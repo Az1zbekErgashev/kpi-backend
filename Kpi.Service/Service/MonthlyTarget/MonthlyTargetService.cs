@@ -182,7 +182,7 @@ namespace Kpi.Service.Service.MonthlyTarget
             if (existUserThisTeam == null) throw new KpiException(404, "user_not_found");
 
 
-            var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.  == dto.UserId && x.IsDeleted == 0 && x.Year == dto.Year && x.Month == dto.Month)
+            var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == dto.UserId && x.IsDeleted == 0 && x.Year == dto.Year && x.Month == dto.Month)
                 .Include(x => x.MonthlyTargetComment)
                 .Include(x => x.MonthlyTargetValue)
                 .Include(x => x.Goal)
