@@ -178,6 +178,20 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             if (existUserThisTeam == null) throw new KpiException(404, "user_not_found");
 
+            if(userId == dto.UserId && role == Role.TeamLeader)
+            {
+                var teamWithAllUsersFilled = await teamRepository.GetAll(x =>
+                      x.Id == teamId &&
+                      x.Users.All(user =>
+                          user.CreatedGoals.Any(goal =>
+                              goal.MonthlyPerformance.Any(mp => mp.Month == dto.Month && mp.Year == dto.Year && mp.Status == GoalStatus.Approved)
+                          )
+                      )
+                  ).FirstOrDefaultAsync();
+
+                if (teamWithAllUsersFilled == null)
+                    throw new KpiException(400, "not_all_users_have_filled_monthly_performance");
+            }
 
             var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == dto.UserId && x.IsDeleted == 0 && x.Year == dto.Year && x.Month == dto.Month && x.Goal.Status == GoalStatus.Approved)
                 .Include(x => x.MonthlyTargetComment)
