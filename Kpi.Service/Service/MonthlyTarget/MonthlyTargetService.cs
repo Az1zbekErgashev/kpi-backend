@@ -1,9 +1,7 @@
 ﻿using Kpi.Domain.Enum;
 using Kpi.Domain.Models.Goal;
 using Kpi.Domain.Models.PagedResult;
-using Kpi.Domain.Models.User;
 using Kpi.Service.DTOs.Goal;
-using Kpi.Service.DTOs.User;
 using Kpi.Service.Exception;
 using Kpi.Service.Interfaces.IRepositories;
 using Kpi.Service.Interfaces.MonthlyTarget;
@@ -13,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Authentication;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace Kpi.Service.Service.MonthlyTarget
 {
@@ -182,7 +179,7 @@ namespace Kpi.Service.Service.MonthlyTarget
             if (existUserThisTeam == null) throw new KpiException(404, "user_not_found");
 
 
-            var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == dto.UserId && x.IsDeleted == 0 && x.Year == dto.Year && x.Month == dto.Month)
+            var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == dto.UserId && x.IsDeleted == 0 && x.Year == dto.Year && x.Month == dto.Month && x.Goal.Status == GoalStatus.Approved)
                 .Include(x => x.MonthlyTargetComment)
                 .Include(x => x.MonthlyTargetValue)
                 .Include(x => x.Goal)
