@@ -435,6 +435,17 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             existTargetValue.Status = dto.Status ? GoalStatus.Approved : GoalStatus.Returned;
 
+            var newComment = new Domain.Entities.Comment.MonthlyTargetComment
+            {
+                Content = dto.Comment,
+                Status = dto.Status ? Domain.Enum.GoalStatus.Approved : Domain.Enum.GoalStatus.Returned,
+                MonthlyPerformanceId = existTargetValue.Id,
+                CreatedById = GetUserIdFromContext()
+            };
+
+            await monthlyTargetCommentRepository.CreateAsync(newComment);
+            await monthlyTargetCommentRepository.SaveChangesAsync();
+
             monthlyPerformanceRepository.UpdateAsync(existTargetValue);
             await monthlyPerformanceRepository.SaveChangesAsync();
 
