@@ -16,8 +16,9 @@ namespace Kpi.Domain.Models.Goal
         public string? Year { get; set; }
         public string Month { get; set; }
         public PositionModel? Position { get; set; }
+        public bool MonthlyFinish { get; set; }
 
-        public virtual MonthlyPerformanceListModel MapFromEntity(Domain.Entities.User.User entity, string year, string month)
+        public virtual MonthlyPerformanceListModel MapFromEntity(Domain.Entities.User.User entity, string year, string month, bool monthlyFinish)
         {
             int parsedYear = !string.IsNullOrEmpty(year) ? int.Parse(year) : DateTime.UtcNow.Year;
             int parseMonth = !string.IsNullOrEmpty(month) ? int.Parse(month) : DateTime.UtcNow.Month;
@@ -34,6 +35,7 @@ namespace Kpi.Domain.Models.Goal
             Year = year;
             Month = month;
             Position = entity?.Position is null ? null : new PositionModel().MapFromEntity(entity.Position);
+            MonthlyFinish = monthlyFinish;
             return this;
         }
     }
