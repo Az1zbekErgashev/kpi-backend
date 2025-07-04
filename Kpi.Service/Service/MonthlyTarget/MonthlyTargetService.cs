@@ -414,34 +414,16 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             string filterYear = dto?.Year.ToString() ?? DateTime.UtcNow.Year.ToString();
 
-            var team = await teamRepository.GetAll(x => x.Id == teamId && x.IsDeleted == 0)
-                .Include(x => x.Users)
-                    .ThenInclude(u => u.CreatedGoals)
-                        .ThenInclude(g => g.MonthlyPerformance)
-                .FirstOrDefaultAsync();
+            var teamWithAllUsersFilled = await teamRepository.GetAll(x =>
+                x.Id == teamId && x.IsDeleted == 0 && 
+                x.Users.All(user => user.IsDeleted == 0 && user.Role != Role.TeamLeader &&
+                    user.CreatedGoals.Any(goal => goal.IsDeleted == 0 && goal.CreatedAt.Year == dto.Year &&
+                        goal.MonthlyPerformance.Any(mp => mp.Month == dto.Month && mp.Year == dto.Year && mp.Status == GoalStatus.Approved && mp.IsDeleted == 0 && mp.IsSended == true)
+                    )
+                )
+            ).FirstOrDefaultAsync();
 
-            var notFilledUsers = team?.Users
-                .Where(u => u.IsDeleted == 0)
-                .Where(u => !u.CreatedGoals.Any(goal =>
-                    goal.IsDeleted == 0 &&
-                    goal.CreatedAt.Year == dto.Year &&
-                    goal.MonthlyPerformance.Any(mp =>
-                        mp.Month == dto.Month &&
-                        mp.Year == dto.Year &&
-                        mp.Status == GoalStatus.Approved &&
-                        mp.IsDeleted == 0 &&
-                        mp.IsSended == true)))
-                .ToList();
-
-            if (notFilledUsers != null && notFilledUsers.Any())
-            {
-                foreach (var u in notFilledUsers)
-                {
-                    Console.WriteLine($"❌ User {u.Id} has not completed monthly performance correctly.");
-                }
-            }
-
-            bool monthlyFinish = notFilledUsers == null ? true : false;
+            bool monthlyFinish = teamWithAllUsersFilled == null ? true : false;
 
             List<MonthlyPerformanceListModel> models = list.Select(
                 f => new MonthlyPerformanceListModel().MapFromEntity(f, filterYear, dto.Month.ToString(), monthlyFinish))
