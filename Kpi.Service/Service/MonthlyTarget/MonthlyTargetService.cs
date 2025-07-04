@@ -417,7 +417,7 @@ namespace Kpi.Service.Service.MonthlyTarget
             var teamWithAllUsersFilled = await teamRepository.GetAll(x =>
                 x.Id == teamId && x.IsDeleted == 0 && 
                 x.Users.All(user => user.IsDeleted == 0 &&
-                    user.CreatedGoals.Any(goal =>
+                    user.CreatedGoals.Any(goal => goal.IsDeleted == 0 && goal.CreatedAt.Year == dto.Year &&
                         goal.MonthlyPerformance.Any(mp => mp.Month == dto.Month && mp.Year == dto.Year && mp.Status == GoalStatus.Approved && mp.IsDeleted == 0)
                     )
                 )
