@@ -67,7 +67,7 @@ namespace Kpi.Service.Service.User
         {
             var existUser = await _userRepository.GetAsync(x => x.Id == dto.Id && x.IsDeleted == 0);
 
-            var existuserName = await _userRepository.GetAsync(x => x.UserName == dto.UserName && x.Id != dto.Id);
+            var existuserName = await _userRepository.GetAsync(x => x.UserName == dto.UserName && x.Id != dto.Id && x.IsDeleted == 0);
 
             if (existUser == null) throw new KpiException(404, "user_not_found");
 
@@ -90,7 +90,6 @@ namespace Kpi.Service.Service.User
             existUser.Role = dto.Role;
             existUser.FullName = dto.FullName;
             existUser.UserName = dto.UserName;
-            existUser.Password = dto.Password ?? existUser.Password;
             existUser.TeamId = dto.TeamId;
             existUser.UpdatedAt = DateTime.UtcNow;
             existUser.RoomId = dto.RoomId;
