@@ -415,10 +415,10 @@ namespace Kpi.Service.Service.MonthlyTarget
             string filterYear = dto?.Year.ToString() ?? DateTime.UtcNow.Year.ToString();
 
             var teamWithAllUsersFilled = await teamRepository.GetAll(x =>
-                x.Id == teamId &&
-                x.Users.All(user =>
+                x.Id == teamId && x.IsDeleted == 0 && 
+                x.Users.All(user => user.IsDeleted == 0 &&
                     user.CreatedGoals.Any(goal =>
-                        goal.MonthlyPerformance.Any(mp => mp.Month == dto.Month && mp.Year == dto.Year && mp.Status == GoalStatus.Approved)
+                        goal.MonthlyPerformance.Any(mp => mp.Month == dto.Month && mp.Year == dto.Year && mp.Status == GoalStatus.Approved && mp.IsDeleted == 0)
                     )
                 )
             ).FirstOrDefaultAsync();
