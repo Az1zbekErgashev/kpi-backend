@@ -66,7 +66,7 @@ namespace Kpi.Service.Service.MonthlyTarget
                     var alreadyExists = await monthlyTargetValueRepository
                                                      .GetAsync(x => x.TargetValueId == targetDto.TargetValueId && x.MonthlyPerformanceId == existMonthlyEvalutions.Id);
 
-                    if(alreadyExists == null)
+                    if (alreadyExists == null)
                     {
                         var monthlyTarget = new Domain.Entities.Goal.MonthlyTargetValue
                         {
@@ -78,7 +78,7 @@ namespace Kpi.Service.Service.MonthlyTarget
                             MonthlyPerformanceId = existMonthlyEvalutions.Id
                         };
 
-                       await monthlyTargetValueRepository.CreateAsync(monthlyTarget);
+                        await monthlyTargetValueRepository.CreateAsync(monthlyTarget);
                     }
                 }
             }
@@ -415,13 +415,23 @@ namespace Kpi.Service.Service.MonthlyTarget
             string filterYear = dto?.Year.ToString() ?? DateTime.UtcNow.Year.ToString();
 
             var teamWithAllUsersFilled = await teamRepository.GetAll(x =>
-                x.Id == teamId && x.IsDeleted == 0 && 
-                x.Users.All(user => user.IsDeleted == 0 && user.Role != Role.TeamLeader &&
-                    user.CreatedGoals.Any(goal => goal.IsDeleted == 0 && goal.CreatedAt.Year == dto.Year &&
-                        goal.MonthlyPerformance.Any(mp => mp.Month == dto.Month && mp.Year == dto.Year && mp.Status == GoalStatus.Approved && mp.IsDeleted == 0 && mp.IsSended == true)
-                    )
-                )
-            ).FirstOrDefaultAsync();
+                 x.Id == teamId && x.IsDeleted == 0 &&
+                 x.Users
+                  .Where(user => user.IsDeleted == 0 && user.Role != Role.TeamLeader)
+                  .All(user =>
+                      user.CreatedGoals.Any(goal =>
+                          goal.IsDeleted == 0 &&
+                          goal.CreatedAt.Year == dto.Year &&
+                          goal.MonthlyPerformance.Any(mp =>
+                              mp.Month == dto.Month &&
+                              mp.Year == dto.Year &&
+                              mp.Status == GoalStatus.Approved &&
+                              mp.IsDeleted == 0 &&
+                              mp.IsSended
+                          )
+                      )
+                  )
+             ).FirstOrDefaultAsync();
 
             bool monthlyFinish = teamWithAllUsersFilled == null ? true : false;
 
@@ -444,7 +454,7 @@ namespace Kpi.Service.Service.MonthlyTarget
         {
             var existTargetValue = await monthlyPerformanceRepository.GetAsync(x => x.Id == dto.GoalId && x.IsDeleted == 0 && x.IsSended == true);
 
-            if(existTargetValue is null) throw new KpiException(400, "monthly_target_value_not_found");
+            if (existTargetValue is null) throw new KpiException(400, "monthly_target_value_not_found");
 
             existTargetValue.Status = dto.Status ? GoalStatus.Approved : GoalStatus.Returned;
 

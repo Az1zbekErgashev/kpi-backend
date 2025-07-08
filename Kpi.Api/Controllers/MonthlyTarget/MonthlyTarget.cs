@@ -23,18 +23,18 @@ namespace Kpi.Api.Controllers.MonthlyTarget
 
         [HttpPut]
         public async ValueTask<IActionResult> UpdateAsync(CreateMonthlyTargetGroupDto dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.UpdateAsync(dto));
-        
+
         [HttpPut("change-status")]
         public async ValueTask<IActionResult> ChangeStatus(ChangeGoalStatusDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.ChangeMonthlyTargetStatus(dto));
 
-        [HttpGet]                  
+        [HttpGet]
         public async ValueTask<IActionResult> GetByYearAndMonth([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetByIdAsync(dto));
 
         [HttpGet("list")]
         public async ValueTask<IActionResult> GetAllAsync([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetAllAsync(dto));
-       
+
         [HttpGet("list-ceo")]
-        public async ValueTask<IActionResult> GetUsersForCEO([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetUsersForCEO(dto));  
+        public async ValueTask<IActionResult> GetUsersForCEO([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetUsersForCEO(dto));
 
         [HttpGet("team-leader")]
         public async ValueTask<IActionResult> GetTeamLeader([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetTeamLeader(dto));

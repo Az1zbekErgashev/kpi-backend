@@ -60,8 +60,8 @@ namespace Kpi.Infrastructure.Contexts
                 .HasOne(e => e.User)
                 .WithMany(u => u.Evaluations)
                 .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Restrict);     
-            
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<User>()
                 .HasMany(e => e.Evaluations)
                 .WithOne(u => u.User)

@@ -114,7 +114,7 @@ namespace Kpi.Service.Service.Goal
                     Year = dto.CreatetAt.Value.Year,
                     Month = i,
                     IsSended = false,
-                    
+
                 };
 
                 await monthlyPerformanceRepository.CreateAsync(monthlyPerformance);
@@ -469,7 +469,7 @@ namespace Kpi.Service.Service.Goal
 
             return true;
         }
-      
+
 
         public async ValueTask<GoalModel> GetByTeamIdAsync(int id, int year)
         {

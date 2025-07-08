@@ -3,6 +3,7 @@ using System;
 using Kpi.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kpi.Api.Migrations
 {
     [DbContext(typeof(KpiDB))]
-    partial class KpiDBModelSnapshot : ModelSnapshot
+    [Migration("20250708051101_UPDATE_EVALUATIONS_TABLE")]
+    partial class UPDATE_EVALUATIONS_TABLE
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2170,9 +2173,8 @@ namespace Kpi.Api.Migrations
                     b.Property<int>("KpiDivisionId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Modifier")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Modifier")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Month")
                         .HasColumnType("integer");
@@ -2753,12 +2755,12 @@ namespace Kpi.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 8, 11, 34, 4, 590, DateTimeKind.Utc).AddTicks(4551),
+                            CreatedAt = new DateTime(2025, 7, 8, 5, 11, 1, 299, DateTimeKind.Utc).AddTicks(4126),
                             FullName = "System Admin",
                             IsDeleted = 0,
                             Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
                             Role = 0,
-                            UpdatedAt = new DateTime(2025, 7, 8, 11, 34, 4, 590, DateTimeKind.Utc).AddTicks(4554),
+                            UpdatedAt = new DateTime(2025, 7, 8, 5, 11, 1, 299, DateTimeKind.Utc).AddTicks(4130),
                             UserName = "CEO"
                         });
                 });

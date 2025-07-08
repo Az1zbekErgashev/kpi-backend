@@ -9,6 +9,7 @@ using Kpi.Domain.Entities.User;
 using Kpi.Service.Interfaces.Attachment;
 using Kpi.Service.Interfaces.Auth;
 using Kpi.Service.Interfaces.Country;
+using Kpi.Service.Interfaces.Evaluation;
 using Kpi.Service.Interfaces.Goal;
 using Kpi.Service.Interfaces.IRepositories;
 using Kpi.Service.Interfaces.MonthlyTarget;
@@ -19,6 +20,7 @@ using Kpi.Service.Interfaces.User;
 using Kpi.Service.Service.Attachment;
 using Kpi.Service.Service.Auth;
 using Kpi.Service.Service.Country;
+using Kpi.Service.Service.Evaluation;
 using Kpi.Service.Service.Goal;
 using Kpi.Service.Service.MonthlyTarget;
 using Kpi.Service.Service.MultilingualText;
@@ -54,6 +56,7 @@ namespace Kpi.Api.Extensions
             services.AddScoped<IGenericRepository<MonthlyTargetComment>, GenericRepository<MonthlyTargetComment>>();
             services.AddScoped<IGenericRepository<MonthlyPerformance>, GenericRepository<MonthlyPerformance>>();
             services.AddScoped<IGenericRepository<MonthlyTargetValue>, GenericRepository<MonthlyTargetValue>>();
+            services.AddScoped<IGenericRepository<MonthlyTargetValue>, GenericRepository<MonthlyTargetValue>>();
         }
 
         public static void AddCustomServices(this IServiceCollection services)
@@ -68,6 +71,7 @@ namespace Kpi.Api.Extensions
             services.AddScoped<ITeamService, TeamService>();
             services.AddScoped<IGoalService, GoalService>();
             services.AddScoped<IMonthlyTargetService, MonthlyTargetService>();
+            services.AddScoped<IEvaluationService, EvaluationService>();
         }
         public static void AddSwaggerService(this IServiceCollection services)
         {
