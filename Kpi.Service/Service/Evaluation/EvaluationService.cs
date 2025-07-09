@@ -34,32 +34,68 @@ namespace Kpi.Service.Service.Evaluation
 
         public async ValueTask<IEnumerable<EmployeeEvaluationFroCreateDTO>> CreateOrUpdateAsync(List<EmployeeEvaluationFroCreateDTO> dtos)
         {
-            var newEntities = new List<Domain.Entities.Evaluation>();
+            if (dtos == null || !dtos.Any())
+                throw new KpiException(400, "Список обновлений пуст");
+
+            var result = new List<EmployeeEvaluationFroCreateDTO>();
 
             foreach (var dto in dtos)
             {
-                bool exists = await _context.Evaluations.AnyAsync(e =>
-                    e.UserId == dto.UserId &&
-                    e.KpiDivisionId == dto.KpiDivisionId &&
-                    e.Year == dto.Year &&
-                    e.Month == dto.Month);
+                // Валидация пользователя и division
+                var employeeExists = await _context.Users.AnyAsync(e => e.Id == dto.UserId);
+                if (!employeeExists)
+                    throw new KpiException(404, $"Сотрудник ID={dto.UserId} не найден");
 
-                if (exists)
+                var divisionExists = await _context.Divisions.AnyAsync(d => d.Id == dto.KpiDivisionId);
+                if (!divisionExists)
+                    throw new KpiException(404, $"KPI Division ID={dto.KpiDivisionId} не найден");
+
+                Domain.Entities.Evaluation entity = null;
+
+                if (dto.Id > 0)
                 {
-                    continue;
+                    entity = await _context.Evaluations.FirstOrDefaultAsync(e => e.Id == dto.Id);
                 }
 
-                var entity = MapToEntity(dto);
-                newEntities.Add(entity);
+                if (entity == null)
+                {
+                    entity = await _context.Evaluations.FirstOrDefaultAsync(e =>
+                        e.UserId == dto.UserId &&
+                        e.KpiDivisionId == dto.KpiDivisionId &&
+                        e.Year == dto.Year &&
+                        e.Month == dto.Month);
+                }
+
+                if (entity == null)
+                {
+                    entity = new Domain.Entities.Evaluation
+                    {
+                        UserId = dto.UserId,
+                        KpiDivisionId = dto.KpiDivisionId,
+                        Year = dto.Year,
+                        Month = dto.Month,
+                        Grade = dto.Grade != null ? dto.Grade : Grade.A,
+                        Comment = dto.Comment,
+                        Score = dto.Score != null ? dto.Score : 100,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    await _context.Evaluations.AddAsync(entity);
+                }
+                else
+                {
+                    entity.Grade = dto.Grade != null ? dto.Grade : Grade.A;
+                    entity.Comment = dto.Comment;
+                    entity.Score = dto.Score != null ? dto.Score : 100;
+                    entity.UpdatedAt = DateTime.UtcNow;
+                }
+
+                result.Add(MapToDto(entity));
             }
 
-            if (newEntities.Any())
-            {
-                await _context.Evaluations.AddRangeAsync(newEntities);
-                await _context.SaveChangesAsync();
-            }
-
-            return newEntities.Select(MapToDto).ToList();
+            await _context.SaveChangesAsync();
+            return result;
         }
 
         private EmployeeEvaluationFroCreateDTO MapToDto(Domain.Entities.Evaluation entity)
