@@ -9,5 +9,7 @@ namespace Kpi.Service.DTOs.Evaluation
         public Grade? Grade { get; set; }
         public string? Modifier { get; set; }
         public string Comment { get; set; }
+        public int Score { get; set; }
+        public double? Ratio { get; set; }
     }
 }

@@ -72,7 +72,7 @@ namespace Kpi.Service.Service.Evaluation
                 Year = entity.Year,
                 Month = entity.Month,
                 Grade = entity.Grade,
-                Modifier = entity.Modifier,
+                Score = entity.Score,
                 Comment = entity.Comment
             };
         }
@@ -86,8 +86,8 @@ namespace Kpi.Service.Service.Evaluation
                 Year = dto.Year,
                 Month = dto.Month,
                 Grade = dto.Grade,
-                Modifier = dto.Modifier,
-                Comment = dto.Comment
+                Comment = dto.Comment,
+                Score = dto.Score
             };
         }
 
@@ -129,8 +129,9 @@ namespace Kpi.Service.Service.Evaluation
                 entity.Year = dto.Year;
                 entity.Month = dto.Month;
                 entity.Grade = dto.Grade;
-                entity.Modifier = dto.Modifier;
                 entity.Comment = dto.Comment;
+                entity.UpdatedAt = DateTime.UtcNow;
+                entity.Score = dto.Score;
 
                 updatedList.Add(MapToDto(entity));
             }
@@ -194,9 +195,11 @@ namespace Kpi.Service.Service.Evaluation
                     {
                         KpiDivisionId = division.Id,
                         DivisionName = division.Name,
+                        Ratio = division.Ratio,
                         Grade = eval?.Grade,
                         Modifier = eval?.Modifier,
-                        Comment = eval?.Comment
+                        Comment = eval?.Comment,
+                        Score = eval.Score
                     };
                 }).ToList();
 
