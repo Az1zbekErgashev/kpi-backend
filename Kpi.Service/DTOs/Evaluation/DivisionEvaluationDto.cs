@@ -11,5 +11,6 @@ namespace Kpi.Service.DTOs.Evaluation
         public string Comment { get; set; }
         public int Score { get; set; }
         public double? Ratio { get; set; }
+        public int Id { get; set; }
     }
 }

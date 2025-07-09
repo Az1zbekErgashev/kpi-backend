@@ -252,7 +252,8 @@ namespace Kpi.Service.Service.Evaluation
                         Grade = eval?.Grade,
                         Modifier = eval?.Modifier,
                         Comment = eval?.Comment,
-                        Score = eval.Score
+                        Score = eval.Score,
+                        Id = eval.Id
                     };
                 }).ToList();
 
@@ -260,7 +261,7 @@ namespace Kpi.Service.Service.Evaluation
                 {
                     EmployeeId = emp.Id,
                     FullName = emp.FullName,
-                    DivisionEvaluations = divisionEvaluations
+                    DivisionEvaluations = divisionEvaluations,
                 };
             }).ToList();
 
