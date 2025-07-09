@@ -103,9 +103,6 @@ namespace Kpi.Service.Service.Evaluation
                 var entity = await _context.Evaluations
                     .FirstOrDefaultAsync(e => e.Id == dto.Id);
 
-                if (entity == null)
-                    throw new KpiException(404, $"Оценка с ID={dto.Id} не найдена");
-
                 var employeeExists = await _context.Users.AnyAsync(e => e.Id == dto.UserId);
                 if (!employeeExists)
                     throw new KpiException(404, $"Сотрудник ID={dto.UserId} не найден");
@@ -119,19 +116,39 @@ namespace Kpi.Service.Service.Evaluation
                     e.KpiDivisionId == dto.KpiDivisionId &&
                     e.Year == dto.Year &&
                     e.Month == dto.Month &&
-                    e.Id != dto.Id);
+                    (entity == null || e.Id != entity.Id));
 
                 if (isDuplicate)
-                    throw new KpiException(404, $"Дубликат: сотрудник {dto.UserId}, division {dto.KpiDivisionId}, {dto.Month}.{dto.Year}");
+                    throw new KpiException(409, $"Дубликат: сотрудник {dto.UserId}, division {dto.KpiDivisionId}, {dto.Month}.{dto.Year}");
 
-                entity.UserId = dto.UserId;
-                entity.KpiDivisionId = dto.KpiDivisionId;
-                entity.Year = dto.Year;
-                entity.Month = dto.Month;
-                entity.Grade = dto.Grade;
-                entity.Comment = dto.Comment;
-                entity.UpdatedAt = DateTime.UtcNow;
-                entity.Score = dto.Score;
+                if (entity == null)
+                {
+                    entity = new Domain.Entities.Evaluation
+                    {
+                        UserId = dto.UserId,
+                        KpiDivisionId = dto.KpiDivisionId,
+                        Year = dto.Year,
+                        Month = dto.Month,
+                        Grade = dto.Grade != null ? dto.Grade : Grade.A,
+                        Comment = dto.Comment,
+                        Score = dto.Score != null ? dto.Score : 100,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    await _context.Evaluations.AddAsync(entity);
+                }
+                else
+                {
+                    entity.UserId = dto.UserId;
+                    entity.KpiDivisionId = dto.KpiDivisionId;
+                    entity.Year = dto.Year;
+                    entity.Month = dto.Month;
+                    entity.Grade = dto.Grade ;
+                    entity.Comment = dto.Comment;
+                    entity.Score = dto.Score;
+                    entity.UpdatedAt = DateTime.UtcNow;
+                }
 
                 updatedList.Add(MapToDto(entity));
             }
