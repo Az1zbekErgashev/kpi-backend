@@ -9,8 +9,8 @@ namespace Kpi.Service.DTOs.Evaluation
         public int KpiDivisionId { get; set; }
         public int Year { get; set; }
         public int Month { get; set; }
-        public Grade Grade { get; set; }
+        public Grade? Grade { get; set; }
         public string Comment { get; set; }
-        public int Score { get; set; }
+        public int? Score { get; set; }
     }
 }

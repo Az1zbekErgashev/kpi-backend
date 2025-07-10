@@ -41,7 +41,6 @@ namespace Kpi.Service.Service.Evaluation
 
             foreach (var dto in dtos)
             {
-                // Валидация пользователя и division
                 var employeeExists = await _context.Users.AnyAsync(e => e.Id == dto.UserId);
                 if (!employeeExists)
                     throw new KpiException(404, $"Сотрудник ID={dto.UserId} не найден");
@@ -74,9 +73,9 @@ namespace Kpi.Service.Service.Evaluation
                         KpiDivisionId = dto.KpiDivisionId,
                         Year = dto.Year,
                         Month = dto.Month,
-                        Grade = dto.Grade != null ? dto.Grade : Grade.A,
+                        Grade = dto.Grade,
                         Comment = dto.Comment,
-                        Score = dto.Score != null ? dto.Score : 100,
+                        Score = dto.Score,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };
@@ -85,9 +84,9 @@ namespace Kpi.Service.Service.Evaluation
                 }
                 else
                 {
-                    entity.Grade = dto.Grade != null ? dto.Grade : Grade.A;
+                    entity.Grade = dto.Grade;
                     entity.Comment = dto.Comment;
-                    entity.Score = dto.Score != null ? dto.Score : 100;
+                    entity.Score = dto.Score;
                     entity.UpdatedAt = DateTime.UtcNow;
                 }
 
@@ -224,7 +223,7 @@ namespace Kpi.Service.Service.Evaluation
                     .Where(e => e.TeamId == teamId && e.IsDeleted == 0)
                     .ToListAsync();
 
-            var employeeIds = employees.Select(e => e.Id).ToList();
+            var employeeIds = employees?.Select(e => e.Id).ToList();
 
             var evaluations = await _context.Evaluations
                 .Where(e => employeeIds.Contains(e.UserId)
@@ -234,15 +233,15 @@ namespace Kpi.Service.Service.Evaluation
                 .Include(e => e.KpiDivision)
                 .ToListAsync();
 
-            var result = employees.Select(emp =>
+            var result = employees?.Select(emp =>
             {
                 var employeeEvals = evaluations
-                    .Where(e => e.UserId == emp.Id && emp.IsDeleted == 0)
-                    .ToList();
+                    ?.Where(e => e.UserId == emp.Id && emp.IsDeleted == 0)
+                    ?.ToList();
 
-                var divisionEvaluations = allDivisions.Select(division =>
+                var divisionEvaluations = allDivisions?.Select(division =>
                 {
-                    var eval = employeeEvals.FirstOrDefault(e => e.KpiDivisionId == division.Id && e.IsDeleted == 0);
+                    var eval = employeeEvals?.FirstOrDefault(e => e.KpiDivisionId == division.Id && e.IsDeleted == 0);
 
                     return new DivisionEvaluationDto
                     {
@@ -250,10 +249,9 @@ namespace Kpi.Service.Service.Evaluation
                         DivisionName = division.Name,
                         Ratio = division.Ratio,
                         Grade = eval?.Grade,
-                        Modifier = eval?.Modifier,
                         Comment = eval?.Comment,
-                        Score = eval.Score,
-                        Id = eval.Id
+                        Score = eval?.Score,
+                        Id = eval?.Id
                     };
                 }).ToList();
 
@@ -263,7 +261,7 @@ namespace Kpi.Service.Service.Evaluation
                     FullName = emp.FullName,
                     DivisionEvaluations = divisionEvaluations,
                 };
-            }).ToList();
+            })?.ToList();
 
             return result;
         }
