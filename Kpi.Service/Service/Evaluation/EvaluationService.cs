@@ -77,7 +77,8 @@ namespace Kpi.Service.Service.Evaluation
                         Comment = dto.Comment,
                         Score = dto.Score,
                         CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
+                        UpdatedAt = DateTime.UtcNow,
+                        Status = GoalStatus.PendingReview
                     };
 
                     await _context.Evaluations.AddAsync(entity);
@@ -88,6 +89,7 @@ namespace Kpi.Service.Service.Evaluation
                     entity.Comment = dto.Comment;
                     entity.Score = dto.Score;
                     entity.UpdatedAt = DateTime.UtcNow;
+                    entity.Status = GoalStatus.PendingReview;
                 }
 
                 result.Add(MapToDto(entity));

@@ -14,5 +14,6 @@ namespace Kpi.Domain.Entities
         public int KpiDivisionId { get; set; }
         public Goal.Division KpiDivision { get; set; }
         public int? Score { get; set; }
+        public GoalStatus Status { get; set; }
     }
 }
