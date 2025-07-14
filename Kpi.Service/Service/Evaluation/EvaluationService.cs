@@ -270,7 +270,7 @@ namespace Kpi.Service.Service.Evaluation
             return result;
         }
 
-        public async ValueTask<List<object>> GetAllEvaluation(int year)
+        public async ValueTask<object> GetAllEvaluation(int year)
         {
             var user = httpContextAccessor?.HttpContext?.User
              ?? throw new InvalidCredentialException();
@@ -300,50 +300,75 @@ namespace Kpi.Service.Service.Evaluation
             if (role == Role.TeamLeader) evaluations = evaluations.Where(x => x.User.TeamId == teamIdByToken).ToList();
 
             var allDivisionNames = divisions.Divisions
-                .Select(e => e.Name)
-                .Where(name => !string.IsNullOrEmpty(name))
-                .Distinct()
-                .ToList();
+           .Select(d => new {
+               Name = d.Name,
+               Ratio = d.Ratio,
+               Id = ToCamelCase(d.Name)
+           })
+           .Distinct()
+           .ToList();
 
-            var result = evaluations
+            var students = evaluations
                 .GroupBy(e => e.UserId)
-                .Select(group => (object)new
+                .Select(group =>
                 {
-                    id = group.Key.ToString(),
-                    room = group.First().User.Room?.Name,
-                    name = group.First().User.FullName,
-                    position = group.First().User.Position?.Name,
-                    department = group.First().User.Team?.Name,
-                    date = group.First().CreatedAt,
+                    var first = group.First();
 
-                    grades = allDivisionNames.ToDictionary(
-                        divisionName => divisionName,
-                        divisionName =>
-                            Enumerable.Range(1, 12).ToDictionary(
-                                month => month.ToString(),
-                                month =>
-                                {
-                                    var match = group.FirstOrDefault(e =>
-                                        string.Equals(e.KpiDivision.Name, divisionName, StringComparison.OrdinalIgnoreCase) &&
-                                        e.Month == month);
+                    var grades = allDivisionNames.ToDictionary(
+                        div => div.Id,
+                        div => Enumerable.Range(1, 12).ToDictionary(
+                            month => month.ToString(),
+                            month =>
+                            {
+                                var match = group.FirstOrDefault(e =>
+                                    e.KpiDivision.Name.ToLower().Trim() == div.Name.ToLower().Trim() &&
+                                    e.Month == month);
+                                return match?.Grade?.ToString();
+                            }
+                        )
+                    );
 
-                                    return match != null
-                                        ? new
-                                        {
-                                            grade = match.Grade,
-                                            ratio = match.KpiDivision.Ratio
-                                        }
-                                        : null;
-                                }
-                            )
-                    )
+                    return new
+                    {
+                        id = first.UserId.ToString(),
+                        room = first.User.Room?.Name,
+                        name = first.User.FullName,
+                        position = first.User.Position?.Name,
+                        department = first.User.Team?.Name,
+                        date = first.CreatedAt.ToString("dd.MM.yyyy"),
+                        grades
+                    };
                 })
                 .ToList();
 
-            return result;
+            var gradeDistribution = evaluations
+                .GroupBy(e => e.Grade)
+                .ToDictionary(g => g.Key.ToString(), g => g.Count());
+
+            var evaluationPeriods = allDivisionNames
+                .Select(div => new
+                {
+                    id = div.Id,
+                    name = div.Name,
+                    percentage = div.Ratio,
+                    periods = Enumerable.Range(1, 12).ToList(),
+                    description = "KPI Division Assessment"
+                })
+                .ToList();
+
+            return new
+            {
+                students,
+                evaluationPeriods,
+                statistics = new
+                {
+                    totalStudents = students.Count,
+                    gradeDistribution
+                }
+            };
         }
 
-        public async ValueTask<List<object>> GetAllEvaluationByTeam(int year, int teamId)
+        public async ValueTask<object> GetAllEvaluationByTeam(int year, int teamId)
         {
             var user = httpContextAccessor?.HttpContext?.User
              ?? throw new InvalidCredentialException();
@@ -373,47 +398,79 @@ namespace Kpi.Service.Service.Evaluation
             if (role == Role.TeamLeader) evaluations = evaluations.Where(x => x.User.TeamId == teamIdByToken).ToList();
 
             var allDivisionNames = divisions.Divisions
-                .Select(e => e.Name)
-                .Where(name => !string.IsNullOrEmpty(name))
-                .Distinct()
-                .ToList();
+             .Select(d => new {
+                 Name = d.Name,
+                 Ratio = d.Ratio,
+                 Id = ToCamelCase(d.Name)
+             })
+             .Distinct()
+             .ToList();
 
-            var result = evaluations
+            var students = evaluations
                 .GroupBy(e => e.UserId)
-                .Select(group => (object)new
+                .Select(group =>
                 {
-                    id = group.Key.ToString(),
-                    room = group.First().User.Room?.Name,
-                    name = group.First().User.FullName,
-                    position = group.First().User.Position?.Name,
-                    department = group.First().User.Team?.Name,
-                    date = group.First().CreatedAt,
+                    var first = group.First();
 
-                    grades = allDivisionNames.ToDictionary(
-                        divisionName => divisionName,
-                        divisionName =>
-                            Enumerable.Range(1, 12).ToDictionary(
-                                month => month.ToString(),
-                                month =>
-                                {
-                                    var match = group.FirstOrDefault(e =>
-                                        string.Equals(e.KpiDivision.Name, divisionName, StringComparison.OrdinalIgnoreCase) &&
-                                        e.Month == month);
+                    var grades = allDivisionNames.ToDictionary(
+                        div => div.Id,
+                        div => Enumerable.Range(1, 12).ToDictionary(
+                            month => month.ToString(),
+                            month =>
+                            {
+                                var match = group.FirstOrDefault(e =>
+                                    e.KpiDivision.Name.ToLower().Trim() == div.Name.ToLower().Trim() &&
+                                    e.Month == month);
+                                return match?.Grade?.ToString();
+                            }
+                        )
+                    );
 
-                                    return match != null
-                                        ? new
-                                        {
-                                            grade = match.Grade,
-                                            ratio = match.KpiDivision.Ratio
-                                        }
-                                        : null;
-                                }
-                            )
-                    )
+                    return new
+                    {
+                        id = first.UserId.ToString(),
+                        room = first.User.Room?.Name,
+                        name = first.User.FullName,
+                        position = first.User.Position?.Name,
+                        department = first.User.Team?.Name,
+                        date = first.CreatedAt.ToString("dd.MM.yyyy"),
+                        grades
+                    };
                 })
                 .ToList();
 
-            return result;
+            var gradeDistribution = evaluations
+                .GroupBy(e => e.Grade)
+                .ToDictionary(g => g.Key.ToString(), g => g.Count());
+
+            var evaluationPeriods = allDivisionNames
+                .Select(div => new
+                {
+                    id = div.Id,
+                    name = div.Name,
+                    percentage = div.Ratio,
+                    periods = Enumerable.Range(1, 12).ToList(),
+                    description = "KPI Division Assessment"
+                })
+                .ToList();
+
+            return new
+            {
+                students,
+                evaluationPeriods,
+                statistics = new
+                {
+                    totalStudents = students.Count,
+                    gradeDistribution
+                }
+            };
+        }
+
+        private string ToCamelCase(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return input;
+            input = input.Trim().Replace(" ", "_").ToLowerInvariant();
+            return input;
         }
     }
 }
