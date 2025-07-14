@@ -300,13 +300,13 @@ namespace Kpi.Service.Service.Evaluation
             if (role == Role.TeamLeader) evaluations = evaluations.Where(x => x.User.TeamId == teamIdByToken).ToList();
 
             var allDivisionNames = divisions.Divisions
-           .Select(d => new {
-               Name = d.Name,
-               Ratio = d.Ratio,
-               Id = ToCamelCase(d.Name)
-           })
-           .Distinct()
-           .ToList();
+               .Where(d => !string.IsNullOrWhiteSpace(d.Name))
+               .Select(d => new {
+                   Name = d.Name,
+                   Ratio = d.Ratio,
+                   Id = $"{ToCamelCase(d.Name)}_{d.Id}" 
+               })
+               .ToList();
 
             var students = evaluations
                 .GroupBy(e => e.UserId)
@@ -315,18 +315,18 @@ namespace Kpi.Service.Service.Evaluation
                     var first = group.First();
 
                     var grades = allDivisionNames.ToDictionary(
-                        div => div.Id,
-                        div => Enumerable.Range(1, 12).ToDictionary(
-                            month => month.ToString(),
-                            month =>
-                            {
-                                var match = group.FirstOrDefault(e =>
-                                    e.KpiDivision.Name.ToLower().Trim() == div.Name.ToLower().Trim() &&
-                                    e.Month == month);
-                                return match?.Grade?.ToString();
-                            }
-                        )
-                    );
+                     div => div.Id,
+                     div => Enumerable.Range(1, 12).ToDictionary(
+                         month => month.ToString(),
+                         month =>
+                         {
+                             var match = group.FirstOrDefault(e =>
+                                 e.KpiDivision.Name.ToLower().Trim() == div.Name.ToLower().Trim() &&
+                                 e.Month == month);
+                             return match?.Grade?.ToString();
+                         }
+                     )
+ );
 
                     return new
                     {
@@ -346,15 +346,15 @@ namespace Kpi.Service.Service.Evaluation
                 .ToDictionary(g => g.Key.ToString(), g => g.Count());
 
             var evaluationPeriods = allDivisionNames
-                .Select(div => new
-                {
-                    id = div.Id,
-                    name = div.Name,
-                    percentage = div.Ratio,
-                    periods = Enumerable.Range(1, 12).ToList(),
-                    description = "KPI Division Assessment"
-                })
-                .ToList();
+                  .Select(div => new
+                  {
+                      id = div.Id,
+                      name = div.Name,
+                      percentage = div.Ratio,
+                      periods = Enumerable.Range(1, 12).ToList(),
+                      description = "KPI Division Assessment"
+                  })
+                  .ToList();
 
             return new
             {
