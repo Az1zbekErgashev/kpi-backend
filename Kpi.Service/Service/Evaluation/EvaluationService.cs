@@ -1,4 +1,5 @@
-﻿using Kpi.Domain.Enum;
+﻿using Kpi.Domain.Entities.Goal;
+using Kpi.Domain.Enum;
 using Kpi.Infrastructure.Contexts;
 using Kpi.Service.DTOs.Evaluation;
 using Kpi.Service.Exception;
@@ -6,6 +7,7 @@ using Kpi.Service.Interfaces.Evaluation;
 using Kpi.Service.Interfaces.IRepositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Security.Claims;
 
@@ -264,6 +266,152 @@ namespace Kpi.Service.Service.Evaluation
                     DivisionEvaluations = divisionEvaluations,
                 };
             })?.ToList();
+
+            return result;
+        }
+
+        public async ValueTask<List<object>> GetAllEvaluation(int year)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+             ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamIdByToken) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo && x.IsDeleted == 0).Include(x => x.Divisions).FirstOrDefaultAsync();
+
+            if (divisions is null) throw new KpiException(404, "goal_not_found");
+
+            var evaluations = await evaluationService.GetAll(x => x.IsDeleted == 0 && x.Year == year)
+                .Include(x => x.User)
+                .ThenInclude(x => x.Position)
+                .Include(x => x.User)
+                .ThenInclude(x => x.Team)
+                .Include(x => x.User)
+                .ThenInclude(x => x.Room)
+                .Include(x => x.KpiDivision)
+                .ToListAsync();
+
+
+            if (role == Role.TeamLeader) evaluations = evaluations.Where(x => x.User.TeamId == teamIdByToken).ToList();
+
+            var allDivisionNames = divisions.Divisions
+                .Select(e => e.Name)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .Distinct()
+                .ToList();
+
+            var result = evaluations
+                .GroupBy(e => e.UserId)
+                .Select(group => (object)new
+                {
+                    id = group.Key.ToString(),
+                    room = group.First().User.Room?.Name,
+                    name = group.First().User.FullName,
+                    position = group.First().User.Position?.Name,
+                    department = group.First().User.Team?.Name,
+                    date = group.First().CreatedAt,
+
+                    grades = allDivisionNames.ToDictionary(
+                        divisionName => divisionName,
+                        divisionName =>
+                            Enumerable.Range(1, 12).ToDictionary(
+                                month => month.ToString(),
+                                month =>
+                                {
+                                    var match = group.FirstOrDefault(e =>
+                                        string.Equals(e.KpiDivision.Name, divisionName, StringComparison.OrdinalIgnoreCase) &&
+                                        e.Month == month);
+
+                                    return match != null
+                                        ? new
+                                        {
+                                            grade = match.Grade,
+                                            ratio = match.KpiDivision.Ratio
+                                        }
+                                        : null;
+                                }
+                            )
+                    )
+                })
+                .ToList();
+
+            return result;
+        }
+
+        public async ValueTask<List<object>> GetAllEvaluationByTeam(int year, int teamId)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+             ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamIdByToken) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo && x.IsDeleted == 0).Include(x => x.Divisions).FirstOrDefaultAsync();
+
+            if (divisions is null) throw new KpiException(404, "goal_not_found");
+
+            var evaluations = await evaluationService.GetAll(x => x.IsDeleted == 0 && x.Year == year && x.User.TeamId == teamId)
+                .Include(x => x.User)
+                .ThenInclude(x => x.Position)
+                .Include(x => x.User)
+                .ThenInclude(x => x.Team)
+                .Include(x => x.User)
+                .ThenInclude(x => x.Room)
+                .Include(x => x.KpiDivision)
+                .ToListAsync();
+
+
+            if (role == Role.TeamLeader) evaluations = evaluations.Where(x => x.User.TeamId == teamIdByToken).ToList();
+
+            var allDivisionNames = divisions.Divisions
+                .Select(e => e.Name)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .Distinct()
+                .ToList();
+
+            var result = evaluations
+                .GroupBy(e => e.UserId)
+                .Select(group => (object)new
+                {
+                    id = group.Key.ToString(),
+                    room = group.First().User.Room?.Name,
+                    name = group.First().User.FullName,
+                    position = group.First().User.Position?.Name,
+                    department = group.First().User.Team?.Name,
+                    date = group.First().CreatedAt,
+
+                    grades = allDivisionNames.ToDictionary(
+                        divisionName => divisionName,
+                        divisionName =>
+                            Enumerable.Range(1, 12).ToDictionary(
+                                month => month.ToString(),
+                                month =>
+                                {
+                                    var match = group.FirstOrDefault(e =>
+                                        string.Equals(e.KpiDivision.Name, divisionName, StringComparison.OrdinalIgnoreCase) &&
+                                        e.Month == month);
+
+                                    return match != null
+                                        ? new
+                                        {
+                                            grade = match.Grade,
+                                            ratio = match.KpiDivision.Ratio
+                                        }
+                                        : null;
+                                }
+                            )
+                    )
+                })
+                .ToList();
 
             return result;
         }

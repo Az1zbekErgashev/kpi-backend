@@ -31,5 +31,16 @@ namespace Kpi.Api.Controllers.Evaluation
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetAsync(List<EmployeeEvaluationFroCreateDTO> dtos) => ResponseHandler.ReturnIActionResponse(await evaluationService.CreateOrUpdateAsync(dtos));
+
+
+        [HttpGet("all-evaluation")]
+        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetEvaluation(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetAllEvaluation(year));
+
+        [HttpGet("all-evaluation-by-team")]
+        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetAllEvaluationByTeam(int year, int team) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetAllEvaluationByTeam(year, team));
     }
 }
