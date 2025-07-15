@@ -9,6 +9,7 @@ namespace Kpi.Service.Interfaces.Evaluation
         Task<IEnumerable<TeamEvaluationResultDto>> GetTeamEvaluationsAsync(EvaluationsForFilterDTO dto);
         ValueTask<object> GetAllEvaluation(int year);
         ValueTask<object> GetAllEvaluationByTeam(int year, int team);
+        ValueTask<object> GetAllEvaluationByYear(int year);
 
     }
 }
