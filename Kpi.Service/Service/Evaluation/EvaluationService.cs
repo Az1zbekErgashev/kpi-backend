@@ -116,20 +116,6 @@ namespace Kpi.Service.Service.Evaluation
             };
         }
 
-        private Domain.Entities.Evaluation MapToEntity(EmployeeEvaluationFroCreateDTO dto)
-        {
-            return new Domain.Entities.Evaluation
-            {
-                UserId = dto.UserId,
-                KpiDivisionId = dto.KpiDivisionId,
-                Year = dto.Year,
-                Month = dto.Month,
-                Grade = dto.Grade,
-                Comment = dto.Comment,
-                Score = dto.Score
-            };
-        }
-
         public async Task<IEnumerable<EmployeeEvaluationFroCreateDTO>> UpdateAsync(IEnumerable<EmployeeEvaluationFroCreateDTO> dtos)
         {
             if (dtos == null || !dtos.Any())
@@ -304,7 +290,7 @@ namespace Kpi.Service.Service.Evaluation
                .Select(d => new {
                    Name = d.Name,
                    Ratio = d.Ratio,
-                   Id = $"{ToCamelCase(d.Name)}_{d.Id}" 
+                   Id = d.Id, 
                })
                .ToList();
 
@@ -321,7 +307,7 @@ namespace Kpi.Service.Service.Evaluation
                          month =>
                          {
                              var match = group.FirstOrDefault(e =>
-                                 e.KpiDivision.Name.ToLower().Trim() == div.Name.ToLower().Trim() &&
+                                 e.KpiDivisionId == div.Id &&
                                  e.Month == month);
                              return match?.Grade?.ToString();
                          }
@@ -360,11 +346,6 @@ namespace Kpi.Service.Service.Evaluation
             {
                 students,
                 evaluationPeriods,
-                statistics = new
-                {
-                    totalStudents = students.Count,
-                    gradeDistribution
-                }
             };
         }
 
