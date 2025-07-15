@@ -474,5 +474,47 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             return true;
         }
+
+        public async ValueTask<MonthlyPerformanceModel> GetByIdForCeoAsync(MonthlyPerformanceForFilterDTO dto)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+               ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+
+            var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == dto.UserId 
+            && x.IsDeleted == 0 
+            && x.Year == dto.Year
+            && x.Month == dto.Month
+            && x.Goal.Status == GoalStatus.Approved
+            && x.Goal.CreatedBy.TeamId == dto.TeamId 
+            && x.Goal.CreatedBy.Role == Role.TeamLeader)
+                .Include(x => x.MonthlyTargetComment)
+                .Include(x => x.MonthlyTargetValue)
+                .Include(x => x.Goal)
+                .ThenInclude(x => x.CreatedBy)
+                .ThenInclude(x => x.Team)
+                .Include(x => x.Goal)
+                .ThenInclude(x => x.CreatedBy)
+                .ThenInclude(x => x.Room)
+                .Include(x => x.Goal)
+                .ThenInclude(x => x.Divisions)
+                .ThenInclude(x => x.Goals)
+                .ThenInclude(x => x.TargetValue)
+                .Include(x => x.Goal)
+                .ThenInclude(x => x.Comments)
+                .FirstOrDefaultAsync();
+
+            if (model == null || model.Goal == null) throw new KpiException(404, "goal_not_found");
+
+            bool isTeamLeader = dto.UserId != GetUserIdFromContext() && role == Role.TeamLeader ? true : false;
+
+            return new MonthlyPerformanceModel().MapFromEntity(model, isTeamLeader);
+        }
     }
 }
