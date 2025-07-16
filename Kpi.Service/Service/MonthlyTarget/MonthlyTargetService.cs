@@ -487,8 +487,8 @@ namespace Kpi.Service.Service.MonthlyTarget
             }
 
 
-            var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == dto.UserId 
-            && x.IsDeleted == 0 
+            var model = await monthlyPerformanceRepository.GetAll(x =   > 
+            x.IsDeleted == 0 
             && x.Year == dto.Year
             && x.Month == dto.Month
             && x.Goal.Status == GoalStatus.Approved
