@@ -487,7 +487,7 @@ namespace Kpi.Service.Service.MonthlyTarget
             }
 
 
-            var model = await monthlyPerformanceRepository.GetAll(x =   > 
+            var model = await monthlyPerformanceRepository.GetAll(x => 
             x.IsDeleted == 0 
             && x.Year == dto.Year
             && x.Month == dto.Month
