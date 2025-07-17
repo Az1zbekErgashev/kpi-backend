@@ -26,7 +26,7 @@ namespace Kpi.Domain.Models.Goal
             MonthlyTargetValue = entity.MonthlyTargetValue is null ? null : entity.MonthlyTargetValue.Select(x => new MonthlyTargetValueModel().MapFromEntity(x)).ToList();
             IsSended = entity.IsSended;
             IsTeamLeader = isCurrent;
-            Status = entity.MonthlyTargetValue is null || entity.MonthlyTargetValue.Count == 0 ? GoalStatus.NoWritte : entity.Status;
+            Status = entity.MonthlyTargetComment is null || entity.MonthlyTargetComment.Count == 0 ? GoalStatus.NoWritte : entity.Status;
             return this;
         }
     }
