@@ -486,7 +486,6 @@ namespace Kpi.Service.Service.MonthlyTarget
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-
             var model = await monthlyPerformanceRepository.GetAll(x => 
             x.IsDeleted == 0 
             && x.Year == dto.Year

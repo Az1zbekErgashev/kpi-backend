@@ -412,6 +412,7 @@ namespace Kpi.Service.Service.Evaluation
                         position = first.User.Position?.Name,
                         department = first.User.Team?.Name,
                         date = first.CreatedAt.ToString("dd.MM.yyyy"),
+                        role = first.User.Role,
                         grades
                     };
                 })
@@ -502,6 +503,7 @@ namespace Kpi.Service.Service.Evaluation
                         position = first.User.Position?.Name,
                         department = first.User.Team?.Name,
                         date = first.CreatedAt.ToString("dd.MM.yyyy"),
+                        role = first.User.Role,
                         grades
                     };
                 })
