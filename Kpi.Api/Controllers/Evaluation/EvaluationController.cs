@@ -11,7 +11,6 @@ namespace Kpi.Api.Controllers.Evaluation
     public class EvaluationController : ControllerBase
     {
         private readonly IEvaluationService evaluationService;
-
         public EvaluationController(IEvaluationService evaluationService)
         {
             this.evaluationService = evaluationService;
@@ -21,11 +20,6 @@ namespace Kpi.Api.Controllers.Evaluation
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetAsync([FromQuery] EvaluationsForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetTeamEvaluationsAsync(dto));
-
-        [HttpPut]
-        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
-        public async ValueTask<IActionResult> GetAsync(IEnumerable<EmployeeEvaluationFroCreateDTO> dtos) => ResponseHandler.ReturnIActionResponse(await evaluationService.UpdateAsync(dtos));
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
@@ -42,10 +36,26 @@ namespace Kpi.Api.Controllers.Evaluation
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetAllEvaluationByTeam(int year, int team) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetAllEvaluationByTeam(year, team));
-       
+
         [HttpGet("all-evaluation-by-year")]
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetAllEvaluationByYear(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetAllEvaluationByYear(year));
+
+
+        [HttpGet("all-score")]
+        public async Task<IActionResult> GetConfigForYear(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetEvaluationScores(year));  
+        
+        [HttpGet("divisions-name")]
+        public async Task<IActionResult> GetDivisionName(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetDivisionName(year));
+        
+        [HttpPost("score")]
+        public async Task<IActionResult> GetDivisionName(ScoreForCreationDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.CreateScore(dto)); 
+        
+        [HttpPut("score")]
+        public async Task<IActionResult> UpdateScore(ScoreForUpdateDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.UpdateScore(dto));     
+        
+        [HttpDelete("score/{id}")]
+        public async Task<IActionResult> DeleteScore(int id) => ResponseHandler.ReturnIActionResponse(await evaluationService.DeleteScore(id));
     }
 }

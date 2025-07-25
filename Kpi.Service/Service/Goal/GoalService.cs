@@ -1,8 +1,11 @@
-﻿using Kpi.Domain.Entities.Comment;
+﻿using DocumentFormat.OpenXml.InkML;
+using Kpi.Domain.Entities;
+using Kpi.Domain.Entities.Comment;
 using Kpi.Domain.Entities.Goal;
 using Kpi.Domain.Enum;
 using Kpi.Domain.Models.Goal;
 using Kpi.Domain.Models.Team;
+using Kpi.Infrastructure.Contexts;
 using Kpi.Service.DTOs.Goal;
 using Kpi.Service.Exception;
 using Kpi.Service.Interfaces.Goal;
@@ -27,6 +30,7 @@ namespace Kpi.Service.Service.Goal
         private readonly IGenericRepository<Domain.Entities.Team.Team> teamRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly IGenericRepository<Domain.Entities.Goal.MonthlyPerformance> monthlyPerformanceRepository;
+        private readonly KpiDB _context;
         public GoalService(IGenericRepository<KpiGoal> kpiGoalRepository,
             IGenericRepository<Division> divisionRepository,
             IGenericRepository<TargetValue> targetValueTargetRepository,
@@ -35,7 +39,8 @@ namespace Kpi.Service.Service.Goal
             IGenericRepository<Domain.Entities.Goal.Goal> goalRepository,
             IGenericRepository<Comment> coomentRepository,
             IGenericRepository<Domain.Entities.Team.Team> teamRepository,
-            IGenericRepository<MonthlyPerformance> monthlyPerformanceRepository)
+            IGenericRepository<MonthlyPerformance> monthlyPerformanceRepository,
+            KpiDB context)
         {
             _kpiGoalRepository = kpiGoalRepository;
             _divisionRepository = divisionRepository;
@@ -46,6 +51,7 @@ namespace Kpi.Service.Service.Goal
             _coomentRepository = coomentRepository;
             this.teamRepository = teamRepository;
             this.monthlyPerformanceRepository = monthlyPerformanceRepository;
+            _context = context;
         }
 
         public async ValueTask<bool> CreateAsync(GoalForCreationDTO @dto, int userId)
@@ -121,7 +127,7 @@ namespace Kpi.Service.Service.Goal
             }
 
             await monthlyPerformanceRepository.SaveChangesAsync();
-
+            await _context.SaveChangesAsync();
             return true;
         }
 
@@ -389,6 +395,7 @@ namespace Kpi.Service.Service.Goal
 
                         await _divisionRepository.CreateAsync(newDivision);
 
+
                         if (divisionDto.Goals == null || !divisionDto.Goals.Any())
                             throw new KpiException(400, "please_fill_fields");
 
@@ -419,6 +426,8 @@ namespace Kpi.Service.Service.Goal
                         }
 
                         existGoal.Divisions.Add(newDivision);
+
+                        await _divisionRepository.SaveChangesAsync();
                     }
                 }
 
@@ -438,7 +447,7 @@ namespace Kpi.Service.Service.Goal
             await _coomentRepository.CreateAsync(comment);
             await _coomentRepository.SaveChangesAsync();
             await _targetValueTargetRepository.SaveChangesAsync();
-
+            await _context.SaveChangesAsync();
             return new GoalModel().MapFromEntity(existGoal);
         }
 

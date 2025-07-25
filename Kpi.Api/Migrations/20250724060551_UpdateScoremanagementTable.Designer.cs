@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kpi.Api.Migrations
 {
     [DbContext(typeof(KpiDB))]
-    [Migration("20250609095539_ADDED_RATIO_FOR_GOAL")]
-    partial class ADDED_RATIO_FOR_GOAL
+    [Migration("20250724060551_UpdateScoremanagementTable")]
+    partial class UpdateScoremanagementTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -88,6 +88,45 @@ namespace Kpi.Api.Migrations
                     b.HasIndex("GoalId");
 
                     b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("Kpi.Domain.Entities.Comment.MonthlyTargetComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MonthlyPerformanceId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("MonthlyPerformanceId");
+
+                    b.ToTable("MonthlyTargetComments");
                 });
 
             modelBuilder.Entity("Kpi.Domain.Entities.Country.Country", b =>
@@ -2119,33 +2158,39 @@ namespace Kpi.Api.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Comment")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("EvaluatedById")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("GoalId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Grade")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("KpiDivisionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ScoreManagementId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("EvaluatedById");
+                    b.HasIndex("KpiDivisionId");
 
-                    b.HasIndex("GoalId");
+                    b.HasIndex("ScoreManagementId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Evaluations");
                 });
@@ -2193,9 +2238,6 @@ namespace Kpi.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AssignedToId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -2212,8 +2254,6 @@ namespace Kpi.Api.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AssignedToId");
 
                     b.HasIndex("CreatedById");
 
@@ -2252,7 +2292,7 @@ namespace Kpi.Api.Migrations
                     b.ToTable("KpiGoals");
                 });
 
-            modelBuilder.Entity("Kpi.Domain.Entities.Goal.MonthlyTarget", b =>
+            modelBuilder.Entity("Kpi.Domain.Entities.Goal.MonthlyPerformance", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -2260,14 +2300,8 @@ namespace Kpi.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AssignedToId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
-
-                    b.Property<int>("CreatedById")
-                        .HasColumnType("integer");
 
                     b.Property<int>("GoalId")
                         .HasColumnType("integer");
@@ -2275,30 +2309,68 @@ namespace Kpi.Api.Migrations
                     b.Property<int>("IsDeleted")
                         .HasColumnType("integer");
 
-                    b.Property<string>("TargetEvaluationText")
-                        .HasColumnType("text");
+                    b.Property<bool>("IsSended")
+                        .HasColumnType("boolean");
 
-                    b.Property<double?>("TargetValueNumber")
-                        .HasColumnType("double precision");
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
 
-                    b.Property<double?>("TargetValueRatio")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("TargetValueText")
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
-
-                    b.HasIndex("AssignedToId");
-
-                    b.HasIndex("CreatedById");
 
                     b.HasIndex("GoalId");
 
-                    b.ToTable("MonthlyTargets");
+                    b.ToTable("MonthlyPerformances");
+                });
+
+            modelBuilder.Entity("Kpi.Domain.Entities.Goal.MonthlyTargetValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MonthlyPerformanceId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TargetValueId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<double?>("ValueNumber")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("ValueRatio")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("ValueRatioStatus")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("ValueText")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MonthlyPerformanceId");
+
+                    b.ToTable("MonthlyTargetValues");
                 });
 
             modelBuilder.Entity("Kpi.Domain.Entities.Goal.TargetValue", b =>
@@ -2404,6 +2476,40 @@ namespace Kpi.Api.Migrations
                     b.ToTable("Rooms");
                 });
 
+            modelBuilder.Entity("Kpi.Domain.Entities.ScoreManagement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("DivisionId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Grade")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Score")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DivisionId");
+
+                    b.ToTable("ScoreManagements");
+                });
+
             modelBuilder.Entity("Kpi.Domain.Entities.Team.Team", b =>
                 {
                     b.Property<int>("Id")
@@ -2430,6 +2536,202 @@ namespace Kpi.Api.Migrations
                     b.ToTable("Teams");
                 });
 
+            modelBuilder.Entity("Kpi.Domain.Entities.User.Position", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Positions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "personal_information_manager",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "advisor",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "manager",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "technical_security_officer",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "head_of_technical_security",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "assistant_manager",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "ceo",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "vice_president",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "staff",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "executive_director",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "senior_researcher",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "principal_researcher",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "researcher",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "director",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 15,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "personnel_security_manager",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 16,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "info_security_committee_chair",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 17,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "info_security_committee_member",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 18,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "lead_researcher",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 19,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "deputy_department_head",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 20,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "responsible_researcher",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 21,
+                            CreatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc),
+                            IsDeleted = 0,
+                            Name = "chairman",
+                            UpdatedAt = new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc)
+                        });
+                });
+
             modelBuilder.Entity("Kpi.Domain.Entities.User.User", b =>
                 {
                     b.Property<int>("Id")
@@ -2452,6 +2754,9 @@ namespace Kpi.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("PositionId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
@@ -2470,6 +2775,8 @@ namespace Kpi.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PositionId");
+
                     b.HasIndex("RoomId");
 
                     b.HasIndex("TeamId");
@@ -2480,13 +2787,13 @@ namespace Kpi.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 6, 9, 9, 55, 38, 943, DateTimeKind.Utc).AddTicks(4039),
+                            CreatedAt = new DateTime(2025, 7, 24, 6, 5, 50, 889, DateTimeKind.Utc).AddTicks(6327),
                             FullName = "System Admin",
                             IsDeleted = 0,
                             Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
                             Role = 0,
-                            UpdatedAt = new DateTime(2025, 6, 9, 9, 55, 38, 943, DateTimeKind.Utc).AddTicks(4040),
-                            UserName = "admin"
+                            UpdatedAt = new DateTime(2025, 7, 24, 6, 5, 50, 889, DateTimeKind.Utc).AddTicks(6329),
+                            UserName = "CEO"
                         });
                 });
 
@@ -2509,23 +2816,49 @@ namespace Kpi.Api.Migrations
                     b.Navigation("Goal");
                 });
 
-            modelBuilder.Entity("Kpi.Domain.Entities.Evaluation", b =>
+            modelBuilder.Entity("Kpi.Domain.Entities.Comment.MonthlyTargetComment", b =>
                 {
-                    b.HasOne("Kpi.Domain.Entities.User.User", "EvaluatedBy")
-                        .WithMany("Evaluations")
-                        .HasForeignKey("EvaluatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Kpi.Domain.Entities.Goal.Goal", "Goal")
+                    b.HasOne("Kpi.Domain.Entities.User.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("GoalId")
+                        .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("EvaluatedBy");
+                    b.HasOne("Kpi.Domain.Entities.Goal.MonthlyPerformance", "MonthlyPerformance")
+                        .WithMany("MonthlyTargetComment")
+                        .HasForeignKey("MonthlyPerformanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Goal");
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("MonthlyPerformance");
+                });
+
+            modelBuilder.Entity("Kpi.Domain.Entities.Evaluation", b =>
+                {
+                    b.HasOne("Kpi.Domain.Entities.Goal.Division", "KpiDivision")
+                        .WithMany()
+                        .HasForeignKey("KpiDivisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Kpi.Domain.Entities.ScoreManagement", "ScoreManagement")
+                        .WithMany()
+                        .HasForeignKey("ScoreManagementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Kpi.Domain.Entities.User.User", "User")
+                        .WithMany("Evaluations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("KpiDivision");
+
+                    b.Navigation("ScoreManagement");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Kpi.Domain.Entities.Goal.Division", b =>
@@ -2533,7 +2866,7 @@ namespace Kpi.Api.Migrations
                     b.HasOne("Kpi.Domain.Entities.Goal.Goal", "Goal")
                         .WithMany("Divisions")
                         .HasForeignKey("GoalId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Goal");
@@ -2541,18 +2874,11 @@ namespace Kpi.Api.Migrations
 
             modelBuilder.Entity("Kpi.Domain.Entities.Goal.Goal", b =>
                 {
-                    b.HasOne("Kpi.Domain.Entities.User.User", "AssignedTo")
-                        .WithMany("AssignedGoals")
-                        .HasForeignKey("AssignedToId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Kpi.Domain.Entities.User.User", "CreatedBy")
                         .WithMany("CreatedGoals")
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("AssignedTo");
 
                     b.Navigation("CreatedBy");
                 });
@@ -2562,36 +2888,32 @@ namespace Kpi.Api.Migrations
                     b.HasOne("Kpi.Domain.Entities.Goal.Division", "Division")
                         .WithMany("Goals")
                         .HasForeignKey("DivisionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Division");
                 });
 
-            modelBuilder.Entity("Kpi.Domain.Entities.Goal.MonthlyTarget", b =>
+            modelBuilder.Entity("Kpi.Domain.Entities.Goal.MonthlyPerformance", b =>
                 {
-                    b.HasOne("Kpi.Domain.Entities.User.User", "AssignedTo")
-                        .WithMany()
-                        .HasForeignKey("AssignedToId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Kpi.Domain.Entities.User.User", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Kpi.Domain.Entities.Goal.Goal", "Goal")
-                        .WithMany("MonthlyTargets")
+                        .WithMany("MonthlyPerformance")
                         .HasForeignKey("GoalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AssignedTo");
-
-                    b.Navigation("CreatedBy");
-
                     b.Navigation("Goal");
+                });
+
+            modelBuilder.Entity("Kpi.Domain.Entities.Goal.MonthlyTargetValue", b =>
+                {
+                    b.HasOne("Kpi.Domain.Entities.Goal.MonthlyPerformance", "MonthlyPerformance")
+                        .WithMany("MonthlyTargetValue")
+                        .HasForeignKey("MonthlyPerformanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MonthlyPerformance");
                 });
 
             modelBuilder.Entity("Kpi.Domain.Entities.Goal.TargetValue", b =>
@@ -2605,8 +2927,24 @@ namespace Kpi.Api.Migrations
                     b.Navigation("KpiGoal");
                 });
 
+            modelBuilder.Entity("Kpi.Domain.Entities.ScoreManagement", b =>
+                {
+                    b.HasOne("Kpi.Domain.Entities.Goal.Division", "Division")
+                        .WithMany()
+                        .HasForeignKey("DivisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Division");
+                });
+
             modelBuilder.Entity("Kpi.Domain.Entities.User.User", b =>
                 {
+                    b.HasOne("Kpi.Domain.Entities.User.Position", "Position")
+                        .WithMany()
+                        .HasForeignKey("PositionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Kpi.Domain.Entities.Room.Room", "Room")
                         .WithMany("Users")
                         .HasForeignKey("RoomId");
@@ -2614,6 +2952,8 @@ namespace Kpi.Api.Migrations
                     b.HasOne("Kpi.Domain.Entities.Team.Team", "Team")
                         .WithMany("Users")
                         .HasForeignKey("TeamId");
+
+                    b.Navigation("Position");
 
                     b.Navigation("Room");
 
@@ -2631,13 +2971,20 @@ namespace Kpi.Api.Migrations
 
                     b.Navigation("Divisions");
 
-                    b.Navigation("MonthlyTargets");
+                    b.Navigation("MonthlyPerformance");
                 });
 
             modelBuilder.Entity("Kpi.Domain.Entities.Goal.KpiGoal", b =>
                 {
                     b.Navigation("TargetValue")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Kpi.Domain.Entities.Goal.MonthlyPerformance", b =>
+                {
+                    b.Navigation("MonthlyTargetComment");
+
+                    b.Navigation("MonthlyTargetValue");
                 });
 
             modelBuilder.Entity("Kpi.Domain.Entities.Room.Room", b =>
@@ -2652,8 +2999,6 @@ namespace Kpi.Api.Migrations
 
             modelBuilder.Entity("Kpi.Domain.Entities.User.User", b =>
                 {
-                    b.Navigation("AssignedGoals");
-
                     b.Navigation("CreatedGoals");
 
                     b.Navigation("Evaluations");

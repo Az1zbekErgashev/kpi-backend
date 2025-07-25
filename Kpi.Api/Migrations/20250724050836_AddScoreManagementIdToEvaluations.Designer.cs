@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kpi.Api.Migrations
 {
     [DbContext(typeof(KpiDB))]
-    [Migration("20250708113404_UPDATE_EVALUATIONS_TABLE_GRADE_TYPE")]
-    partial class UPDATE_EVALUATIONS_TABLE_GRADE_TYPE
+    [Migration("20250724050836_AddScoreManagementIdToEvaluations")]
+    partial class AddScoreManagementIdToEvaluations
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -2158,14 +2158,10 @@ namespace Kpi.Api.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Comment")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
-
-                    b.Property<int>("Grade")
-                        .HasColumnType("integer");
 
                     b.Property<int>("IsDeleted")
                         .HasColumnType("integer");
@@ -2173,11 +2169,10 @@ namespace Kpi.Api.Migrations
                     b.Property<int>("KpiDivisionId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Modifier")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ScoreManagementId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -2192,6 +2187,8 @@ namespace Kpi.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("KpiDivisionId");
+
+                    b.HasIndex("ScoreManagementId");
 
                     b.HasIndex("UserId");
 
@@ -2479,6 +2476,38 @@ namespace Kpi.Api.Migrations
                     b.ToTable("Rooms");
                 });
 
+            modelBuilder.Entity("Kpi.Domain.Entities.ScoreManagement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("DivisionId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Grade")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ScoreManagements");
+                });
+
             modelBuilder.Entity("Kpi.Domain.Entities.Team.Team", b =>
                 {
                     b.Property<int>("Id")
@@ -2756,12 +2785,12 @@ namespace Kpi.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 8, 11, 34, 4, 590, DateTimeKind.Utc).AddTicks(4551),
+                            CreatedAt = new DateTime(2025, 7, 24, 5, 8, 36, 66, DateTimeKind.Utc).AddTicks(5687),
                             FullName = "System Admin",
                             IsDeleted = 0,
                             Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
                             Role = 0,
-                            UpdatedAt = new DateTime(2025, 7, 8, 11, 34, 4, 590, DateTimeKind.Utc).AddTicks(4554),
+                            UpdatedAt = new DateTime(2025, 7, 24, 5, 8, 36, 66, DateTimeKind.Utc).AddTicks(5689),
                             UserName = "CEO"
                         });
                 });
@@ -2809,8 +2838,13 @@ namespace Kpi.Api.Migrations
                     b.HasOne("Kpi.Domain.Entities.Goal.Division", "KpiDivision")
                         .WithMany()
                         .HasForeignKey("KpiDivisionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Kpi.Domain.Entities.ScoreManagement", "ScoreManagement")
+                        .WithMany()
+                        .HasForeignKey("ScoreManagementId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Kpi.Domain.Entities.User.User", "User")
                         .WithMany("Evaluations")
@@ -2819,6 +2853,8 @@ namespace Kpi.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("KpiDivision");
+
+                    b.Navigation("ScoreManagement");
 
                     b.Navigation("User");
                 });

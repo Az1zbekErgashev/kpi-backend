@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kpi.Api.Migrations
 {
     [DbContext(typeof(KpiDB))]
-    [Migration("20250702073043_CHANGE_EVALUATIONS_TABLE")]
-    partial class CHANGE_EVALUATIONS_TABLE
+    [Migration("20250724053259_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -2157,33 +2157,23 @@ namespace Kpi.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<double>("AttendanceScore")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("BaseWorkScore")
-                        .HasColumnType("double precision");
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("FinalGrade")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<double>("FinalScore")
-                        .HasColumnType("double precision");
-
                     b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("KpiDivisionId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Month")
                         .HasColumnType("integer");
 
-                    b.Property<double>("SkillImprovementScore")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("TeamAttitudeScore")
-                        .HasColumnType("double precision");
+                    b.Property<int?>("ScoreManagementId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
@@ -2195,6 +2185,10 @@ namespace Kpi.Api.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("KpiDivisionId");
+
+                    b.HasIndex("ScoreManagementId");
 
                     b.HasIndex("UserId");
 
@@ -2482,6 +2476,40 @@ namespace Kpi.Api.Migrations
                     b.ToTable("Rooms");
                 });
 
+            modelBuilder.Entity("Kpi.Domain.Entities.ScoreManagement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("DivisionId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Grade")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DivisionId");
+
+                    b.ToTable("ScoreManagements");
+                });
+
             modelBuilder.Entity("Kpi.Domain.Entities.Team.Team", b =>
                 {
                     b.Property<int>("Id")
@@ -2759,13 +2787,13 @@ namespace Kpi.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 2, 7, 30, 42, 850, DateTimeKind.Utc).AddTicks(5868),
+                            CreatedAt = new DateTime(2025, 7, 24, 5, 32, 58, 903, DateTimeKind.Utc).AddTicks(2518),
                             FullName = "System Admin",
                             IsDeleted = 0,
                             Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
                             Role = 0,
-                            UpdatedAt = new DateTime(2025, 7, 2, 7, 30, 42, 850, DateTimeKind.Utc).AddTicks(5871),
-                            UserName = "admin"
+                            UpdatedAt = new DateTime(2025, 7, 24, 5, 32, 58, 903, DateTimeKind.Utc).AddTicks(2520),
+                            UserName = "CEO"
                         });
                 });
 
@@ -2809,11 +2837,26 @@ namespace Kpi.Api.Migrations
 
             modelBuilder.Entity("Kpi.Domain.Entities.Evaluation", b =>
                 {
+                    b.HasOne("Kpi.Domain.Entities.Goal.Division", "KpiDivision")
+                        .WithMany()
+                        .HasForeignKey("KpiDivisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Kpi.Domain.Entities.ScoreManagement", "ScoreManagement")
+                        .WithMany()
+                        .HasForeignKey("ScoreManagementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Kpi.Domain.Entities.User.User", "User")
                         .WithMany("Evaluations")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("KpiDivision");
+
+                    b.Navigation("ScoreManagement");
 
                     b.Navigation("User");
                 });
@@ -2882,6 +2925,17 @@ namespace Kpi.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("KpiGoal");
+                });
+
+            modelBuilder.Entity("Kpi.Domain.Entities.ScoreManagement", b =>
+                {
+                    b.HasOne("Kpi.Domain.Entities.Goal.Division", "Division")
+                        .WithMany()
+                        .HasForeignKey("DivisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Division");
                 });
 
             modelBuilder.Entity("Kpi.Domain.Entities.User.User", b =>

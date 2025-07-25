@@ -6,15 +6,15 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Kpi.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class UPDATE_EVALUATIONS_TABLE_GRADE_TYPE : Migration
+    public partial class UpdateScoremanagementTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "Modifier",
-                table: "Evaluations",
-                type: "text",
+            migrationBuilder.AlterColumn<double>(
+                name: "Score",
+                table: "ScoreManagements",
+                type: "double precision",
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "integer");
@@ -24,26 +24,26 @@ namespace Kpi.Api.Migrations
                 keyColumn: "Id",
                 keyValue: 1,
                 columns: new[] { "CreatedAt", "UpdatedAt" },
-                values: new object[] { new DateTime(2025, 7, 8, 11, 34, 4, 590, DateTimeKind.Utc).AddTicks(4551), new DateTime(2025, 7, 8, 11, 34, 4, 590, DateTimeKind.Utc).AddTicks(4554) });
+                values: new object[] { new DateTime(2025, 7, 24, 6, 5, 50, 889, DateTimeKind.Utc).AddTicks(6327), new DateTime(2025, 7, 24, 6, 5, 50, 889, DateTimeKind.Utc).AddTicks(6329) });
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<int>(
-                name: "Modifier",
-                table: "Evaluations",
+                name: "Score",
+                table: "ScoreManagements",
                 type: "integer",
                 nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
+                oldClrType: typeof(double),
+                oldType: "double precision");
 
             migrationBuilder.UpdateData(
                 table: "Users",
                 keyColumn: "Id",
                 keyValue: 1,
                 columns: new[] { "CreatedAt", "UpdatedAt" },
-                values: new object[] { new DateTime(2025, 7, 8, 5, 11, 1, 299, DateTimeKind.Utc).AddTicks(4126), new DateTime(2025, 7, 8, 5, 11, 1, 299, DateTimeKind.Utc).AddTicks(4130) });
+                values: new object[] { new DateTime(2025, 7, 24, 5, 32, 58, 903, DateTimeKind.Utc).AddTicks(2518), new DateTime(2025, 7, 24, 5, 32, 58, 903, DateTimeKind.Utc).AddTicks(2520) });
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -8,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kpi.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial_Migration : Migration
+    public partial class AddScoreManagementIdToEvaluations : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,7 +21,7 @@ namespace Kpi.Api.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Path = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -36,7 +37,7 @@ namespace Kpi.Api.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -54,7 +55,7 @@ namespace Kpi.Api.Migrations
                     Key = table.Column<string>(type: "text", nullable: true),
                     Text = table.Column<string>(type: "text", nullable: true),
                     SupportLanguage = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -64,13 +65,29 @@ namespace Kpi.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Positions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Positions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Rooms",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -80,13 +97,31 @@ namespace Kpi.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ScoreManagements",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Score = table.Column<int>(type: "integer", nullable: false),
+                    Grade = table.Column<string>(type: "text", nullable: false),
+                    DivisionId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScoreManagements", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Teams",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -107,13 +142,20 @@ namespace Kpi.Api.Migrations
                     Role = table.Column<int>(type: "integer", nullable: false),
                     TeamId = table.Column<int>(type: "integer", nullable: true),
                     RoomId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    PositionId = table.Column<int>(type: "integer", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_Positions_PositionId",
+                        column: x => x.PositionId,
+                        principalTable: "Positions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Users_Rooms_RoomId",
                         column: x => x.RoomId,
@@ -132,26 +174,15 @@ namespace Kpi.Api.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    Rated = table.Column<string>(type: "text", nullable: false),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedById = table.Column<int>(type: "integer", nullable: false),
-                    AssignedToId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Goals", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Goals_Users_AssignedToId",
-                        column: x => x.AssignedToId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Goals_Users_CreatedById",
                         column: x => x.CreatedById,
@@ -161,16 +192,99 @@ namespace Kpi.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Evaluations",
+                name: "Comments",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GoalId = table.Column<int>(type: "integer", nullable: false),
-                    EvaluatedById = table.Column<int>(type: "integer", nullable: false),
-                    Grade = table.Column<string>(type: "text", nullable: false),
-                    Comment = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    Content = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    CreatedById = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Comments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Comments_Goals_GoalId",
+                        column: x => x.GoalId,
+                        principalTable: "Goals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Comments_Users_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Divisions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Ratio = table.Column<double>(type: "double precision", nullable: true),
+                    GoalId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Divisions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Divisions_Goals_GoalId",
+                        column: x => x.GoalId,
+                        principalTable: "Goals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MonthlyPerformances",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    GoalId = table.Column<int>(type: "integer", nullable: false),
+                    Year = table.Column<int>(type: "integer", nullable: false),
+                    Month = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    IsSended = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MonthlyPerformances", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MonthlyPerformances_Goals_GoalId",
+                        column: x => x.GoalId,
+                        principalTable: "Goals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Evaluations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Year = table.Column<int>(type: "integer", nullable: false),
+                    Month = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Comment = table.Column<string>(type: "text", nullable: true),
+                    KpiDivisionId = table.Column<int>(type: "integer", nullable: false),
+                    ScoreManagementId = table.Column<int>(type: "integer", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -178,17 +292,132 @@ namespace Kpi.Api.Migrations
                 {
                     table.PrimaryKey("PK_Evaluations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Evaluations_Goals_GoalId",
-                        column: x => x.GoalId,
-                        principalTable: "Goals",
+                        name: "FK_Evaluations_Divisions_KpiDivisionId",
+                        column: x => x.KpiDivisionId,
+                        principalTable: "Divisions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Evaluations_ScoreManagements_ScoreManagementId",
+                        column: x => x.ScoreManagementId,
+                        principalTable: "ScoreManagements",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Evaluations_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "KpiGoals",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    DivisionId = table.Column<int>(type: "integer", nullable: false),
+                    GoalContent = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_KpiGoals", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_KpiGoals_Divisions_DivisionId",
+                        column: x => x.DivisionId,
+                        principalTable: "Divisions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MonthlyTargetComments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Content = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    CreatedById = table.Column<int>(type: "integer", nullable: false),
+                    MonthlyPerformanceId = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MonthlyTargetComments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MonthlyTargetComments_MonthlyPerformances_MonthlyPerformanc~",
+                        column: x => x.MonthlyPerformanceId,
+                        principalTable: "MonthlyPerformances",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Evaluations_Users_EvaluatedById",
-                        column: x => x.EvaluatedById,
+                        name: "FK_MonthlyTargetComments_Users_CreatedById",
+                        column: x => x.CreatedById,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MonthlyTargetValues",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ValueRatio = table.Column<double>(type: "double precision", nullable: true),
+                    ValueRatioStatus = table.Column<double>(type: "double precision", nullable: true),
+                    ValueNumber = table.Column<double>(type: "double precision", nullable: true),
+                    ValueText = table.Column<string>(type: "text", nullable: true),
+                    TargetValueId = table.Column<int>(type: "integer", nullable: false),
+                    MonthlyPerformanceId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MonthlyTargetValues", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MonthlyTargetValues_MonthlyPerformances_MonthlyPerformanceId",
+                        column: x => x.MonthlyPerformanceId,
+                        principalTable: "MonthlyPerformances",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TargetValues",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    KpiGoalId = table.Column<int>(type: "integer", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: true),
+                    ValueRatio = table.Column<double>(type: "double precision", nullable: true),
+                    ValueNumber = table.Column<double>(type: "double precision", nullable: true),
+                    ValueText = table.Column<string>(type: "text", nullable: true),
+                    EvaluationText = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TargetValues", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TargetValues_KpiGoals_KpiGoalId",
+                        column: x => x.KpiGoalId,
+                        principalTable: "KpiGoals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(
@@ -448,29 +677,108 @@ namespace Kpi.Api.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Positions",
+                columns: new[] { "Id", "CreatedAt", "IsDeleted", "Name", "UpdatedAt" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "personal_information_manager", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 2, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "advisor", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 3, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "manager", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 4, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "technical_security_officer", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 5, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "head_of_technical_security", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 6, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "assistant_manager", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 7, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "ceo", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 8, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "vice_president", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 9, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "staff", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 10, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "executive_director", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 11, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "senior_researcher", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 12, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "principal_researcher", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 13, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "researcher", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 14, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "director", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 15, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "personnel_security_manager", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 16, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "info_security_committee_chair", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 17, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "info_security_committee_member", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 18, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "lead_researcher", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 19, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "deputy_department_head", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 20, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "responsible_researcher", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) },
+                    { 21, new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc), 0, "chairman", new DateTime(2023, 11, 23, 16, 13, 56, 461, DateTimeKind.Utc) }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "CreatedAt", "FullName", "IsDeleted", "Password", "Role", "RoomId", "TeamId", "UpdatedAt", "UserName" },
-                values: new object[] { 1, new DateTime(2025, 5, 27, 10, 29, 17, 983, DateTimeKind.Utc).AddTicks(1397), "System Admin", 0, "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03", 0, null, null, new DateTime(2025, 5, 27, 10, 29, 17, 983, DateTimeKind.Utc).AddTicks(1399), "admin" });
+                columns: new[] { "Id", "CreatedAt", "FullName", "IsDeleted", "Password", "PositionId", "Role", "RoomId", "TeamId", "UpdatedAt", "UserName" },
+                values: new object[] { 1, new DateTime(2025, 7, 24, 5, 8, 36, 66, DateTimeKind.Utc).AddTicks(5687), "System Admin", 0, "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03", null, 0, null, null, new DateTime(2025, 7, 24, 5, 8, 36, 66, DateTimeKind.Utc).AddTicks(5689), "CEO" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Evaluations_EvaluatedById",
-                table: "Evaluations",
-                column: "EvaluatedById");
+                name: "IX_Comments_CreatedById",
+                table: "Comments",
+                column: "CreatedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Evaluations_GoalId",
-                table: "Evaluations",
+                name: "IX_Comments_GoalId",
+                table: "Comments",
                 column: "GoalId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Goals_AssignedToId",
-                table: "Goals",
-                column: "AssignedToId");
+                name: "IX_Divisions_GoalId",
+                table: "Divisions",
+                column: "GoalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Evaluations_KpiDivisionId",
+                table: "Evaluations",
+                column: "KpiDivisionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Evaluations_ScoreManagementId",
+                table: "Evaluations",
+                column: "ScoreManagementId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Evaluations_UserId",
+                table: "Evaluations",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Goals_CreatedById",
                 table: "Goals",
                 column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KpiGoals_DivisionId",
+                table: "KpiGoals",
+                column: "DivisionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MonthlyPerformances_GoalId",
+                table: "MonthlyPerformances",
+                column: "GoalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MonthlyTargetComments_CreatedById",
+                table: "MonthlyTargetComments",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MonthlyTargetComments_MonthlyPerformanceId",
+                table: "MonthlyTargetComments",
+                column: "MonthlyPerformanceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MonthlyTargetValues_MonthlyPerformanceId",
+                table: "MonthlyTargetValues",
+                column: "MonthlyPerformanceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TargetValues_KpiGoalId",
+                table: "TargetValues",
+                column: "KpiGoalId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_PositionId",
+                table: "Users",
+                column: "PositionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_RoomId",
@@ -490,19 +798,46 @@ namespace Kpi.Api.Migrations
                 name: "Attachments");
 
             migrationBuilder.DropTable(
+                name: "Comments");
+
+            migrationBuilder.DropTable(
                 name: "Countrys");
 
             migrationBuilder.DropTable(
                 name: "Evaluations");
 
             migrationBuilder.DropTable(
+                name: "MonthlyTargetComments");
+
+            migrationBuilder.DropTable(
+                name: "MonthlyTargetValues");
+
+            migrationBuilder.DropTable(
                 name: "MultilingualText");
+
+            migrationBuilder.DropTable(
+                name: "TargetValues");
+
+            migrationBuilder.DropTable(
+                name: "ScoreManagements");
+
+            migrationBuilder.DropTable(
+                name: "MonthlyPerformances");
+
+            migrationBuilder.DropTable(
+                name: "KpiGoals");
+
+            migrationBuilder.DropTable(
+                name: "Divisions");
 
             migrationBuilder.DropTable(
                 name: "Goals");
 
             migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "Positions");
 
             migrationBuilder.DropTable(
                 name: "Rooms");

@@ -486,12 +486,12 @@ namespace Kpi.Service.Service.MonthlyTarget
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var model = await monthlyPerformanceRepository.GetAll(x => 
-            x.IsDeleted == 0 
+            var model = await monthlyPerformanceRepository.GetAll(x =>
+            x.IsDeleted == 0
             && x.Year == dto.Year
             && x.Month == dto.Month
             && x.Goal.Status == GoalStatus.Approved
-            && x.Goal.CreatedBy.TeamId == dto.TeamId 
+            && x.Goal.CreatedBy.TeamId == dto.TeamId
             && x.Goal.CreatedBy.Role == Role.TeamLeader)
                 .Include(x => x.MonthlyTargetComment)
                 .Include(x => x.MonthlyTargetValue)

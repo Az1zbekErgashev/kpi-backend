@@ -32,6 +32,7 @@ namespace Kpi.Infrastructure.Contexts
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Position> Positions { get; set; }
         public DbSet<MonthlyTargetComment> MonthlyTargetComments { get; set; }
+        public DbSet<ScoreManagement> ScoreManagements { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Team>()
@@ -43,7 +44,19 @@ namespace Kpi.Infrastructure.Contexts
                 .HasOne(t => t.Position)
                 .WithMany()
                 .HasForeignKey(u => u.PositionId)
+                .OnDelete(DeleteBehavior.Restrict);  
+            
+            modelBuilder.Entity<Evaluation>()
+                .HasOne(t => t.ScoreManagement)
+                .WithMany()
+                .HasForeignKey(u => u.ScoreManagementId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ScoreManagement>()
+                .HasOne(t => t.Division)
+                .WithMany()
+                .HasForeignKey(u => u.DivisionId)
+                .OnDelete(DeleteBehavior.Cascade); 
 
             modelBuilder.Entity<Room>()
                 .HasMany(t => t.Users)
@@ -96,6 +109,12 @@ namespace Kpi.Infrastructure.Contexts
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(e => e.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);            
+            
+            modelBuilder.Entity<Evaluation>()
+                .HasOne(x => x.KpiDivision)
+                .WithMany()
+                .HasForeignKey(e => e.KpiDivisionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<MonthlyPerformance>()
