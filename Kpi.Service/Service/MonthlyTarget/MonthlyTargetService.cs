@@ -575,8 +575,7 @@ namespace Kpi.Service.Service.MonthlyTarget
             }
 
             var existUserThisTeam = await teamRepository.GetAsync(
-              x => x.Id == teamId && x.Users.Any(o => o.Id == userId
-              );
+              x => x.Id == teamId && x.Users.Any(o => o.Id == userId));
 
             if (existUserThisTeam == null) throw new KpiException(404, "teamId_or_userId_notcorrect");
 
