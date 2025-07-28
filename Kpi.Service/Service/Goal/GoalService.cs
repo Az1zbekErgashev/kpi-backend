@@ -171,7 +171,17 @@ namespace Kpi.Service.Service.Goal
 
         public async ValueTask<GoalModel> GetByTokenIdAsync(int year)
         {
-            var model = await _goalRepository.GetAll(x => x.CreatedById == GetUserIdFromContext() && x.IsDeleted == 0 && x.CreatedAt.Year == year)
+            var user = httpContextAccessor?.HttpContext?.User
+              ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var model = await _goalRepository.GetAll(x => x.CreatedById == userId && x.CreatedBy.TeamId == teamId && x.IsDeleted == 0 && x.CreatedAt.Year == year)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
@@ -607,7 +617,7 @@ namespace Kpi.Service.Service.Goal
             return new GoalModel().MapFromEntity(model);
         }
         
-        public async ValueTask<GoalModel> GetTeamMemberGoal(int year)
+        public async ValueTask<GoalModel> GetTeamMemberGoal(int year, int id)
         {
             var user = httpContextAccessor?.HttpContext?.User
              ?? throw new InvalidCredentialException();
@@ -623,7 +633,7 @@ namespace Kpi.Service.Service.Goal
             && x.IsDeleted == 0 
             && x.CreatedAt.Year == year 
             && x.CreatedBy.Role == Domain.Enum.Role.TeamMember 
-            && x.CreatedById == userId)
+            && x.CreatedById == id)
 
             .Include(x => x.CreatedBy)
             .ThenInclude(x => x.Team)

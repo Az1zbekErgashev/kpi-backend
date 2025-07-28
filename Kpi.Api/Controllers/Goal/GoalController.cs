@@ -5,6 +5,7 @@ using Kpi.Service.Extencions;
 using Kpi.Service.Interfaces.Goal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 namespace Kpi.Api.Controllers.Goal
@@ -58,18 +59,23 @@ namespace Kpi.Api.Controllers.Goal
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetByUserIdAsync(int id, [Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByUserIdAsync(id, year));
 
-        [HttpGet("user-side/{year}")]
-        [Authorize(Roles = "TeamMember")]
-        public async ValueTask<IActionResult> GetByTeamIdAsync([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetTeamMemberGoal(year));
+        [HttpGet("member/{id}/{year}")]
+        [Authorize(Roles = "TeamLeader")]
+        public async ValueTask<IActionResult> GetByTeamIdAsync([Required] int id, [Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetTeamMemberGoal(year, id));
 
-        [HttpGet("team-leader/{year}")]
+        [HttpGet("leader")]
+        [Authorize(Roles = "TeamLeader")]
+        public async ValueTask<IActionResult> GetTeamLeaderGoalAsync([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetTeamLeaderSideGoal(year));
+
+        [HttpGet("leader/{year}")]
         [Authorize(Roles = "TeamMember")]
         public async ValueTask<IActionResult> GetTeamLeaderGoal([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetTeamLeaderGoal(year));
 
         [HttpGet("ceo-goal/{year}")]
         public async ValueTask<IActionResult> GetByCeoGoal([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByCeoGoal(year));
 
-        [HttpGet("by-user-token")]
+        [HttpGet("member")]
+        [Authorize(Roles = "TeamMember")]
         public async ValueTask<IActionResult> GetByTokenIdAsync(int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByTokenIdAsync(year));
 
         [HttpGet("team-by-id")]
@@ -83,8 +89,5 @@ namespace Kpi.Api.Controllers.Goal
         public async ValueTask<IActionResult> DeleteAllData() => ResponseHandler.ReturnIActionResponse(await goalService.DeleteAllData());
         
 
-        [HttpGet("team-leader-side")]
-        [Authorize(Roles = "TeamLeader")]
-        public async ValueTask<IActionResult> GetTeamLeaderGoalAsync([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetTeamLeaderSideGoal(year));
     }
 }

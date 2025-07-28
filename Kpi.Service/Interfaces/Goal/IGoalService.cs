@@ -16,7 +16,7 @@ namespace Kpi.Service.Interfaces.Goal
         ValueTask<GoalModel> GetByUserIdAsync(int id, int year);
         ValueTask<GoalModel> GetByTokenIdAsync(int year);
         ValueTask<GoalModel> GetByCeoGoal(int year);
-        ValueTask<GoalModel> GetTeamMemberGoal(int year);
+        ValueTask<GoalModel> GetTeamMemberGoal(int year, int userId);
         ValueTask<GoalModel> GetTeamLeaderGoal(int year);
         ValueTask<TeamAndRoom> GetRoomAndTeam(int teamId);
         ValueTask<TeamAndRoom> GetRoomAndTeamByToken();
