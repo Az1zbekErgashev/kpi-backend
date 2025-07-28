@@ -2,6 +2,7 @@
 using Kpi.Service.DTOs.Evaluation;
 using Kpi.Service.Extencions;
 using Kpi.Service.Interfaces.Evaluation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kpi.Api.Controllers.Evaluation
@@ -17,9 +18,11 @@ namespace Kpi.Api.Controllers.Evaluation
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetAsync([FromQuery] EvaluationsForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetTeamEvaluationsAsync(dto));
+        
+        [HttpGet("member")]
+        [Authorize(Roles = "TeamLeader")]
+        public async ValueTask<IActionResult> GetUserEvaluationsAsync([FromQuery] EvaluationsForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetUserEvaluationsAsync(dto));
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]

@@ -198,6 +198,88 @@ namespace Kpi.Service.Service.Evaluation
             return result;
         }
 
+
+        public async Task<IEnumerable<TeamEvaluationResultDto>> GetUserEvaluationsAsync(EvaluationsForFilterDTO dto)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+             ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamIdByToken) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var teamId = teamIdByToken;
+
+            var goalWithDivisions = await goalService.GetAll(x =>
+                x.IsDeleted == 0 &&
+                x.CreatedAt.Year == dto.Year &&
+                x.CreatedBy.Role == Role.Ceo)
+                .Include(x => x.Divisions)
+                .FirstOrDefaultAsync();
+
+            if (goalWithDivisions == null)
+                throw new KpiException(404, "Goal with divisions not found.");
+
+            var allDivisions = goalWithDivisions.Divisions.ToList();
+
+            var employees = await _context.Users
+                    .Where(e => e.TeamId == teamId && e.IsDeleted == 0 && e.Id == dto.UserId)
+                    .Include(x => x.Position)
+                    .ToListAsync();
+
+            if (employees == null)
+                throw new KpiException(404, "employee_not_found");
+
+            var employeeIds = employees?.Select(e => e.Id).ToList();
+
+            var evaluations = await _context.Evaluations
+                .Where(e => employeeIds.Contains(e.UserId)
+                            && e.Year == dto.Year
+                            && e.Month == dto.Month
+                            && e.User.IsDeleted == 0)
+                .Include(e => e.KpiDivision)
+                .Include(x => x.ScoreManagement)
+                .ToListAsync();
+
+            var result = employees?.Select(emp =>
+            {
+                var employeeEvals = evaluations
+                    ?.Where(e => e.UserId == emp.Id && emp.IsDeleted == 0)
+                    ?.ToList();
+
+                var divisionEvaluations = allDivisions?.Select(division =>
+                {
+                    var eval = employeeEvals?.FirstOrDefault(e => e.KpiDivisionId == division.Id && e.IsDeleted == 0);
+
+                    return new DivisionEvaluationDto
+                    {
+                        KpiDivisionId = division.Id,
+                        DivisionName = division.Name,
+                        Ratio = division.Ratio,
+                        Grade = eval?.ScoreManagement?.Grade,
+                        ScoreId = eval?.ScoreManagement?.Id,
+                        Comment = eval?.Comment,
+                        Score = eval?.ScoreManagement?.Score,
+                        Id = eval?.Id,
+                    };
+                }).ToList();
+
+                return new TeamEvaluationResultDto
+                {
+                    Role = emp.Role,
+                    EmployeeId = emp.Id,
+                    Position = emp?.Position?.Name,
+                    FullName = emp.FullName,
+                    DivisionEvaluations = divisionEvaluations,
+                };
+            })?.ToList();
+
+            return result;
+        }
+
         public async ValueTask<object> GetAllEvaluation(int year)
         {
             var user = httpContextAccessor?.HttpContext?.User
