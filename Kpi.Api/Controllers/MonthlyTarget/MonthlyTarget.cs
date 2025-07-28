@@ -31,6 +31,7 @@ namespace Kpi.Api.Controllers.MonthlyTarget
         public async ValueTask<IActionResult> GetByYearAndMonth([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetByIdAsync(dto));
 
         [HttpGet("list")]
+        [Authorize(Roles = "TeamMember,TeamLeader")]
         public async ValueTask<IActionResult> GetAllAsync([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetAllAsync(dto));
 
         [HttpGet("list-ceo")]
