@@ -200,7 +200,7 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             bool isTeamLeader = dto.UserId != GetUserIdFromContext() && role == Role.TeamLeader ? true : false;
 
-            return new MonthlyPerformanceModel().MapFromEntity(model, isTeamLeader);
+            return new MonthlyPerformanceModel().MapFromEntity(model);
         }
 
         public async ValueTask<PagedResult<MonthlyPerformanceListModel>> GetAllAsync([Required] MonthlyPerformanceForFilterDTO dto)
