@@ -570,7 +570,7 @@ namespace Kpi.Service.Service.Evaluation
                     divisionId = g.DivisionId,
                     divisionName = g.Division.Name + " " + g.Division.Ratio,
                     grade = g.Grade,
-                    score = g.Score,
+                    score = g.Id,
                     scoreId = g.Id
                 })
                 .Cast<object>() 
