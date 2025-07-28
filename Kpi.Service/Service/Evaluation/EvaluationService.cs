@@ -581,9 +581,11 @@ namespace Kpi.Service.Service.Evaluation
 
         public async ValueTask<List<object>> GetDivisionName(int year)
         {
-            var divisions = await divisionService.GetAll(x => x.CreatedAt.Year == year && x.IsDeleted == 0).ToListAsync();
+            var goal = await goalService.GetAll(x => x.CreatedAt.Year == year && x.IsDeleted == 0 && x.CreatedBy.Role == Role.Ceo).Include(x => x.Divisions).FirstOrDefaultAsync();
 
-            var divisionGradeStats = divisions.Select(g => new
+            if (goal is null) throw new KpiException(400, "goal_not_found");
+
+            var divisionGradeStats = goal.Divisions.Select(g => new
              {
                  Id = g.Id,
                  Name = g.Name + " "+ g.Ratio,
