@@ -148,6 +148,7 @@ namespace Kpi.Service.Service.Evaluation
 
             var employees = await _context.Users
                     .Where(e => e.TeamId == teamId && e.IsDeleted == 0)
+                    .Include(x => x.Position)
                     .ToListAsync();
 
             var employeeIds = employees?.Select(e => e.Id).ToList();
@@ -186,7 +187,9 @@ namespace Kpi.Service.Service.Evaluation
 
                 return new TeamEvaluationResultDto
                 {
+                    Role = emp.Role,
                     EmployeeId = emp.Id,
+                    Position = emp?.Position?.Name,
                     FullName = emp.FullName,
                     DivisionEvaluations = divisionEvaluations,
                 };
