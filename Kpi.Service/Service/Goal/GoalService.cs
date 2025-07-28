@@ -1,4 +1,6 @@
-﻿using DocumentFormat.OpenXml.InkML;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Kpi.Domain.Entities;
 using Kpi.Domain.Entities.Comment;
 using Kpi.Domain.Entities.Goal;
@@ -479,41 +481,6 @@ namespace Kpi.Service.Service.Goal
             return true;
         }
 
-
-        public async ValueTask<GoalModel> GetByTeamIdAsync(int id, int year)
-        {
-            var user = httpContextAccessor?.HttpContext?.User
-              ?? throw new InvalidCredentialException();
-
-            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
-                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
-                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
-            {
-                throw new InvalidCredentialException("Invalid token claims.");
-            }
-
-            var existUserThisTeam = await teamRepository.GetAsync(
-                     x => x.Id == teamId && x.Users.Any(o => o.Id == id)
-                 );
-
-            if (existUserThisTeam == null) throw new KpiException(404, "user_not_found");
-
-            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId && x.IsDeleted == 0 && x.CreatedAt.Year == year && x.CreatedById == id)
-                .Include(x => x.CreatedBy)
-                .ThenInclude(x => x.Team)
-                .Include(x => x.CreatedBy)
-                .ThenInclude(x => x.Room)
-                .Include(x => x.Comments)
-                .Include(x => x.Divisions)
-                .ThenInclude(x => x.Goals)
-                .ThenInclude(x => x.TargetValue)
-                .FirstOrDefaultAsync();
-
-            if (model == null) throw new KpiException(404, "goal_not_found");
-
-            return new GoalModel().MapFromEntity(model);
-        }
-
         public async ValueTask<GoalModel> GetTeamLeaderGoal(int year)
         {
             var user = httpContextAccessor?.HttpContext?.User
@@ -609,6 +576,68 @@ namespace Kpi.Service.Service.Goal
             await _goalRepository.SaveChangesAsync();
 
             return true;
+        }
+
+
+        public async ValueTask<GoalModel> GetTeamLeaderSideGoal(int year)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+             ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId && x.IsDeleted == 0 && x.CreatedAt.Year == year && x.CreatedBy.Role == Domain.Enum.Role.TeamLeader)
+            .Include(x => x.CreatedBy)
+            .ThenInclude(x => x.Team)
+            .Include(x => x.CreatedBy)
+            .ThenInclude(x => x.Room)
+            .Include(x => x.Comments)
+            .Include(x => x.Divisions)
+            .ThenInclude(x => x.Goals)
+            .ThenInclude(x => x.TargetValue)
+            .FirstOrDefaultAsync();
+
+            if (model == null) throw new KpiException(404, "goal_not_found");
+
+            return new GoalModel().MapFromEntity(model);
+        }
+        
+        public async ValueTask<GoalModel> GetTeamMemberGoal(int year)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+             ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId 
+            && x.IsDeleted == 0 
+            && x.CreatedAt.Year == year 
+            && x.CreatedBy.Role == Domain.Enum.Role.TeamMember 
+            && x.CreatedById == userId)
+
+            .Include(x => x.CreatedBy)
+            .ThenInclude(x => x.Team)
+            .Include(x => x.CreatedBy)
+            .ThenInclude(x => x.Room)
+            .Include(x => x.Comments)
+            .Include(x => x.Divisions)
+            .ThenInclude(x => x.Goals)
+            .ThenInclude(x => x.TargetValue)
+            .FirstOrDefaultAsync();
+
+            if (model == null) throw new KpiException(404, "goal_not_found");
+
+            return new GoalModel().MapFromEntity(model);
         }
     }
 }

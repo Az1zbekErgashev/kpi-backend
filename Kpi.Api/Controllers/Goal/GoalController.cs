@@ -1,6 +1,5 @@
 ﻿using Kpi.Domain.Models.Goal;
 using Kpi.Domain.Models.Response;
-using Kpi.Domain.Models.Team;
 using Kpi.Service.DTOs.Goal;
 using Kpi.Service.Extencions;
 using Kpi.Service.Interfaces.Goal;
@@ -59,42 +58,33 @@ namespace Kpi.Api.Controllers.Goal
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetByUserIdAsync(int id, [Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByUserIdAsync(id, year));
 
-        [HttpGet("by-user/{id}/{year}")]
-        [Authorize(Roles = "TeamLeader,TeamMember")]
-        [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
-        public async ValueTask<IActionResult> GetByTeamIdAsync(int id, [Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByTeamIdAsync(id, year));
+        [HttpGet("/user/{year}")]
+        [Authorize(Roles = "TeamMember")]
+        public async ValueTask<IActionResult> GetByTeamIdAsync([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetTeamMemberGoal(year));
 
         [HttpGet("team-leader/{year}")]
         [Authorize(Roles = "TeamMember")]
-        [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetTeamLeaderGoal([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetTeamLeaderGoal(year));
 
         [HttpGet("ceo-goal/{year}")]
-        [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetByCeoGoal([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByCeoGoal(year));
 
         [HttpGet("by-user-token")]
-        [ProducesResponseType(typeof(ResponseModel<GoalModel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetByTokenIdAsync(int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByTokenIdAsync(year));
 
         [HttpGet("team-by-id")]
-        [ProducesResponseType(typeof(ResponseModel<TeamAndRoom>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetRoomAndTeam(int id) => ResponseHandler.ReturnIActionResponse(await goalService.GetRoomAndTeam(id));
 
         [HttpGet("team-by-token")]
-        [ProducesResponseType(typeof(ResponseModel<TeamAndRoom>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetRoomAndTeamByToken() => ResponseHandler.ReturnIActionResponse(await goalService.GetRoomAndTeamByToken());
 
 
         [HttpDelete("delete-all-goal")]
-        [ProducesResponseType(typeof(ResponseModel<TeamAndRoom>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> DeleteAllData() => ResponseHandler.ReturnIActionResponse(await goalService.DeleteAllData());
+        
+
+        [HttpGet("team-leader-side")]
+        [Authorize(Roles = "TeamLeader")]
+        public async ValueTask<IActionResult> GetTeamLeaderGoalAsync([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetTeamLeaderSideGoal(year));
     }
 }
