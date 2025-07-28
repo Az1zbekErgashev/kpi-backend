@@ -532,7 +532,7 @@ namespace Kpi.Service.Service.Goal
 
             if (existUserThisTeam == null) throw new KpiException(404, "team_leader_not_found");
 
-            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId && x.IsDeleted == 0 && x.CreatedAt.Year == year && x.CreatedBy.Role == Role.TeamLeader)
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId && x.IsDeleted == 0 && x.CreatedAt.Year == year && x.CreatedBy.Role == Role.TeamLeader && x.Status == GoalStatus.Approved)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
