@@ -8,6 +8,8 @@ namespace Kpi.Service.Interfaces.MonthlyTarget
     public interface IMonthlyTargetService
     {
         ValueTask<MonthlyPerformanceModel> GetByIdAsync(MonthlyPerformanceForFilterDTO dto);
+        ValueTask<MonthlyPerformanceModel> GetTeamLeaderTarget(MonthlyPerformanceForFilterDTO dto);
+        ValueTask<MonthlyPerformanceModel> GetMemberTarget(MonthlyPerformanceForFilterDTO dto);
         ValueTask<bool> CreateAsync(CreateMonthlyTargetGroupDto dto);
         ValueTask<PagedResult<MonthlyPerformanceListModel>> GetAllAsync([Required] MonthlyPerformanceForFilterDTO dto);
         ValueTask<PagedResult<MonthlyPerformanceListModel>> GetUsersForCEO([Required] MonthlyPerformanceForFilterDTO dto);
