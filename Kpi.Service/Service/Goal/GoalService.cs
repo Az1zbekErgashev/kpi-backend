@@ -629,6 +629,12 @@ namespace Kpi.Service.Service.Goal
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
+            var existUserThisTeam = await teamRepository.GetAsync(
+                   x => x.Id == teamId && x.Users.Any(o => o.Role == Role.TeamMember && userId == o.Id)
+               );
+
+            if (existUserThisTeam == null) throw new KpiException(404, "teamId_or_userId_notcorrect");
+
             var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId 
             && x.IsDeleted == 0 
             && x.CreatedAt.Year == year 
