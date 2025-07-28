@@ -17,6 +17,7 @@ namespace Kpi.Domain.Models.Goal
         public string Month { get; set; }
         public PositionModel? Position { get; set; }
         public bool MonthlyFinish { get; set; }
+        public bool IsGoalFinish { get; set; }
 
         public virtual MonthlyPerformanceListModel MapFromEntity(Domain.Entities.User.User entity, string year, string month, bool monthlyFinish)
         {
@@ -36,6 +37,7 @@ namespace Kpi.Domain.Models.Goal
             Month = month;
             Position = entity?.Position is null ? null : new PositionModel().MapFromEntity(entity.Position);
             MonthlyFinish = monthlyFinish;
+            IsGoalFinish = entity?.CreatedGoals?.Where(x => x.CreatedAt.Year == int.Parse(year) && x.IsDeleted == 0 && x.Status == GoalStatus.Approved)?.FirstOrDefault() != null ? true : false;
             return this;
         }
     }
