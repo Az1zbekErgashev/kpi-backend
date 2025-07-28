@@ -58,7 +58,7 @@ namespace Kpi.Api.Controllers.Goal
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetByUserIdAsync(int id, [Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetByUserIdAsync(id, year));
 
-        [HttpGet("/user/{year}")]
+        [HttpGet("user-side/{year}")]
         [Authorize(Roles = "TeamMember")]
         public async ValueTask<IActionResult> GetByTeamIdAsync([Required] int year) => ResponseHandler.ReturnIActionResponse(await goalService.GetTeamMemberGoal(year));
 
