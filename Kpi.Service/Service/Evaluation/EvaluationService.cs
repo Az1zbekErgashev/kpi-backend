@@ -176,7 +176,6 @@ namespace Kpi.Service.Service.Evaluation
                         Grade = eval?.ScoreManagement?.Grade,
                         ScoreId = eval?.ScoreManagement?.Id,
                         Comment = eval?.Comment,
-                        Score = eval?.ScoreManagement?.Score,
                         Id = eval?.Id,
                     };
                 }).ToList();
@@ -257,7 +256,6 @@ namespace Kpi.Service.Service.Evaluation
                         Grade = eval?.ScoreManagement?.Grade,
                         ScoreId = eval?.ScoreManagement?.Id,
                         Comment = eval?.Comment,
-                        Score = eval?.ScoreManagement?.Score,
                         Id = eval?.Id,
                     };
                 }).ToList();
@@ -316,69 +314,119 @@ namespace Kpi.Service.Service.Evaluation
              .ToList();
 
             var studentWithFinals = evaluations
-                .GroupBy(e => e.UserId)
-                .Select(group =>
+            .GroupBy(e => e.UserId)
+            .Select(group =>
+            {
+                var first = group.First();
+
+                var grades = allDivisionNames.ToDictionary(
+                 div => div.Id,
+                 div => Enumerable.Range(1, 12).ToDictionary(
+                     month => month.ToString(),
+                     month =>
+                     {
+                         var match = group.FirstOrDefault(e =>
+                             e.KpiDivisionId == div.Id &&
+                             e.Month == month);
+                         return match?.ScoreManagement?.Grade?.ToString();
+                     }
+                 )
+             );
+
+                var divisionResults = new List<object>();
+                double totalFinalScore = 0;
+
+                foreach (var div in allDivisionNames)
                 {
-                    var first = group.First();
 
-                    var grades = allDivisionNames.ToDictionary(
-                     div => div.Id, // ключ
-                     div => Enumerable.Range(1, 12).ToDictionary(
-                         month => month.ToString(), // ключ
-                         month =>
-                         {
-                             var match = group.FirstOrDefault(e =>
-                                 e.KpiDivisionId == div.Id &&
-                                 e.Month == month);
-                             return match?.ScoreManagement?.Grade?.ToString(); // ← может вернуть null!
-                         }
-                     )
-                 );
+                    var scoresByMonth = Enumerable.Range(1, 12)
+                     .Select(month =>
+                         group.FirstOrDefault(e =>
+                             e.KpiDivisionId == div.Id &&
+                             e.Month == month)?.ScoreManagement?.MaxScore)
+                     .Where(score => score.HasValue)
+                     .Select(score => score.Value)
+                     .ToList();
 
-                    var divisionResults = new List<object>();
-                    double totalFinalScore = 0;
+                    var monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
 
-                    foreach (var div in allDivisionNames)
+                    var adjusted = Math.Round(monthlyAvg); // 환산 값
+                    var weightedScore = adjusted * (div.Ratio / 100.0);
+                    totalFinalScore += (double)weightedScore;
+
+                    divisionResults.Add(new
                     {
+                        divisionId = div.Id,
+                        average = Math.Round(monthlyAvg, 2),
+                        adjusted = adjusted,
+                        weighted = Math.Round((decimal)weightedScore, 2)
+                    });
+                }
 
-                        var scoresByMonth = Enumerable.Range(1, 12)
-                         .Select(month =>
-                             group.FirstOrDefault(e =>
-                                 e.KpiDivisionId == div.Id &&
-                                 e.Month == month)?.ScoreManagement?.Score)
-                         .Where(score => score.HasValue)
-                         .Select(score => score.Value)
-                         .ToList();
+                var complexScores = group.Where(e => e.ScoreManagement != null && e.ScoreManagement.IsMoreDivisions).ToList();
 
-                        var monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                foreach (var complexScore in complexScores)
+                {
+                    var relatedDivisionIds = complexScore?.ScoreManagement?.Divisions ?? new int[0];
+                    var relatedRatios = allDivisionNames
+                        .Where(d => relatedDivisionIds.Contains(d.Id))
+                        .ToList();
 
-                        var adjusted = Math.Round(monthlyAvg); // 환산 값
-                        var weightedScore = adjusted * (div.Ratio / 100.0);
-                        totalFinalScore += (double)weightedScore;
+                    double percentSum = (double)relatedRatios.Sum(r => r.Ratio);
 
-                        divisionResults.Add(new
-                        {
-                            divisionId = div.Id,
-                            average = Math.Round(monthlyAvg, 2),
-                            adjusted = adjusted,
-                            weighted = Math.Round((decimal)weightedScore, 2)
-                        });
-                    }
+                    var relatedScores = relatedRatios.SelectMany(r =>
+                        Enumerable.Range(1, 12)
+                            .Select(month => group.FirstOrDefault(e =>
+                                e.KpiDivisionId == r.Id && e.Month == month)?.ScoreManagement?.MaxScore)
+                            .Where(score => score.HasValue)
+                            .Select(score => score.Value)
+                    ).ToList();
 
-                    return new
+                    double avgScore = relatedScores.Any() ? relatedScores.Average() : 0;
+                    double adjusted = Math.Round(avgScore);
+                    double weighted = adjusted * (percentSum / 100.0);
+                    totalFinalScore += weighted;
+
+                    divisionResults.Add(new
                     {
-                        id = first.UserId.ToString(),
-                        room = first.User.Room?.Name,
-                        name = first.User.FullName,
-                        position = first.User.Position?.Name,
-                        department = first.User.Team?.Name,
-                        date = first.CreatedAt.ToString("dd.MM.yyyy"),
-                        grades,
-                        finalScore = Math.Round(totalFinalScore, 2),
-                        divisions = divisionResults
-                    };
-                })
-                .ToList();
+                        divisionId = $"group_{string.Join("_", relatedDivisionIds)}",
+                        average = Math.Round(avgScore, 2),
+                        adjusted = adjusted,
+                        weighted = Math.Round((decimal)weighted, 2)
+                    });
+                }
+
+                var finalGradeScore = group.FirstOrDefault(e =>
+                    e.ScoreManagement != null &&
+                    e.ScoreManagement.IsFinalScore &&
+                    totalFinalScore >= e.ScoreManagement.MinScore &&
+                    totalFinalScore <= e.ScoreManagement.MaxScore);
+
+                if (finalGradeScore == null)
+                {
+                    finalGradeScore = group
+                        .Where(e => e.ScoreManagement != null && e.ScoreManagement.IsFinalScore)
+                        .OrderBy(e => e.ScoreManagement.MinScore)
+                        .FirstOrDefault();
+                }
+
+                string finalGrade = finalGradeScore?.ScoreManagement?.Grade ?? "C";
+
+                return new
+                {
+                    id = first.UserId.ToString(),
+                    room = first.User.Room?.Name,
+                    name = first.User.FullName,
+                    position = first.User.Position?.Name,
+                    department = first.User.Team?.Name,
+                    date = first.CreatedAt.ToString("dd.MM.yyyy"),
+                    grades,
+                    finalScore = Math.Round(totalFinalScore, 2),
+                    finalGrade,
+                    divisions = divisionResults
+                };
+            })
+            .ToList();
 
             var evaluationPeriods = allDivisionNames
                  .Select(div => new
@@ -387,7 +435,6 @@ namespace Kpi.Service.Service.Evaluation
                      name = div.Name,
                      percentage = div.Ratio,
                      periods = Enumerable.Range(1, 12).ToList(),
-                     description = "KPI Division Assessment"
                  })
                  .ToList();
 
@@ -441,15 +488,15 @@ namespace Kpi.Service.Service.Evaluation
                     var first = group.First();
 
                     var grades = allDivisionNames.ToDictionary(
-                     div => div.Id, // ключ
+                     div => div.Id, 
                      div => Enumerable.Range(1, 12).ToDictionary(
-                         month => month.ToString(), // ключ
+                         month => month.ToString(), 
                          month =>
                          {
                              var match = group.FirstOrDefault(e =>
                                  e.KpiDivisionId == div.Id &&
                                  e.Month == month);
-                             return match?.ScoreManagement?.Grade?.ToString(); // ← может вернуть null!
+                             return match?.ScoreManagement?.Grade?.ToString(); 
                          }
                      )
                  );
@@ -464,7 +511,7 @@ namespace Kpi.Service.Service.Evaluation
                          .Select(month =>
                              group.FirstOrDefault(e =>
                                  e.KpiDivisionId == div.Id &&
-                                 e.Month == month)?.ScoreManagement?.Score)
+                                 e.Month == month)?.ScoreManagement?.MaxScore)
                          .Where(score => score.HasValue)
                          .Select(score => score.Value)
                          .ToList();
@@ -484,6 +531,55 @@ namespace Kpi.Service.Service.Evaluation
                         });
                     }
 
+                    var complexScores = group.Where(e => e.ScoreManagement != null && e.ScoreManagement.IsMoreDivisions).ToList();
+
+                    foreach (var complexScore in complexScores)
+                    {
+                        var relatedDivisionIds = complexScore?.ScoreManagement?.Divisions ?? new int[0];
+                        var relatedRatios = allDivisionNames
+                            .Where(d => relatedDivisionIds.Contains(d.Id))
+                            .ToList();
+
+                        double percentSum = (double)relatedRatios.Sum(r => r.Ratio);
+
+                        var relatedScores = relatedRatios.SelectMany(r =>
+                            Enumerable.Range(1, 12)
+                                .Select(month => group.FirstOrDefault(e =>
+                                    e.KpiDivisionId == r.Id && e.Month == month)?.ScoreManagement?.MaxScore)
+                                .Where(score => score.HasValue)
+                                .Select(score => score.Value)
+                        ).ToList();
+
+                        double avgScore = relatedScores.Any() ? relatedScores.Average() : 0;
+                        double adjusted = Math.Round(avgScore);
+                        double weighted = adjusted * (percentSum / 100.0);
+                        totalFinalScore += weighted;
+
+                        divisionResults.Add(new
+                        {
+                            divisionId = $"group_{string.Join("_", relatedDivisionIds)}",
+                            average = Math.Round(avgScore, 2),
+                            adjusted = adjusted,
+                            weighted = Math.Round((decimal)weighted, 2)
+                        });
+                    }
+
+                    var finalGradeScore = group.FirstOrDefault(e =>
+                        e.ScoreManagement != null &&
+                        e.ScoreManagement.IsFinalScore &&
+                        totalFinalScore >= e.ScoreManagement.MinScore &&
+                        totalFinalScore <= e.ScoreManagement.MaxScore);
+
+                    if (finalGradeScore == null)
+                    {
+                        finalGradeScore = group
+                            .Where(e => e.ScoreManagement != null && e.ScoreManagement.IsFinalScore)
+                            .OrderBy(e => e.ScoreManagement.MinScore)
+                            .FirstOrDefault();
+                    }
+
+                    string finalGrade = finalGradeScore?.ScoreManagement?.Grade ?? "C";
+
                     return new
                     {
                         id = first.UserId.ToString(),
@@ -494,6 +590,7 @@ namespace Kpi.Service.Service.Evaluation
                         date = first.CreatedAt.ToString("dd.MM.yyyy"),
                         grades,
                         finalScore = Math.Round(totalFinalScore, 2),
+                        finalGrade,
                         divisions = divisionResults
                     };
                 })
@@ -506,7 +603,6 @@ namespace Kpi.Service.Service.Evaluation
                      name = div.Name,
                      percentage = div.Ratio,
                      periods = Enumerable.Range(1, 12).ToList(),
-                     description = "KPI Division Assessment"
                  })
                  .ToList();
 
@@ -555,70 +651,126 @@ namespace Kpi.Service.Service.Evaluation
               })
               .ToList();
 
-            var studentWithFinals = evaluations
-                .GroupBy(e => e.UserId)
-                .Select(group =>
+            var complexScores = await scoreManagementService.GetAll(x => x.IsMoreDivisions).ToListAsync();
+
+            var finalScore = await scoreManagementService.GetAll(x => x.IsFinalScore).ToListAsync();
+
+            var studentWithFinals = await Task.WhenAll(evaluations
+            .GroupBy(e => e.UserId)
+            .Select(async group =>
+            {
+                var first = group.First();
+
+                var grades = allDivisionNames.ToDictionary(
+                 div => div.Id,
+                 div => Enumerable.Range(1, 12).ToDictionary(
+                     month => month.ToString(),
+                     month =>
+                     {
+                         var match = group.FirstOrDefault(e =>
+                             e.KpiDivisionId == div.Id &&
+                             e.Month == month);
+                         return match?.ScoreManagement?.Grade?.ToString();
+                     }
+                 )
+             );
+
+                var divisionResults = new List<object>();
+                double totalFinalScore = 0;
+
+                foreach (var div in allDivisionNames)
                 {
-                    var first = group.First();
 
-                    var grades = allDivisionNames.ToDictionary(
-                     div => div.Id, // ключ
-                     div => Enumerable.Range(1, 12).ToDictionary(
-                         month => month.ToString(), // ключ
-                         month =>
-                         {
-                             var match = group.FirstOrDefault(e =>
-                                 e.KpiDivisionId == div.Id &&
-                                 e.Month == month);
-                             return match?.ScoreManagement?.Grade?.ToString(); // ← может вернуть null!
-                         }
-                     )
-                 );
+                    var scoresByMonth = Enumerable.Range(1, 12)
+                     .Select(month =>
+                         group.FirstOrDefault(e =>
+                             e.KpiDivisionId == div.Id &&
+                             e.Month == month)?.ScoreManagement?.MaxScore)
+                     .Where(score => score.HasValue)
+                     .Select(score => score.Value)
+                     .ToList();
 
-                    var divisionResults = new List<object>();
-                    double totalFinalScore = 0;
+                    var monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
 
-                    foreach (var div in allDivisionNames)
+                    var adjusted = Math.Round(monthlyAvg); // 환산 값
+                    var weightedScore = adjusted * (div.Ratio / 100.0);
+                    totalFinalScore += (double)weightedScore;
+
+                    divisionResults.Add(new
                     {
+                        divisionId = div.Id,
+                        average = Math.Round(monthlyAvg, 2),
+                        adjusted = adjusted,
+                        weighted = Math.Round((decimal)weightedScore, 2)
+                    });
+                }
 
-                        var scoresByMonth = Enumerable.Range(1, 12)
-                         .Select(month =>
-                             group.FirstOrDefault(e =>
-                                 e.KpiDivisionId == div.Id &&
-                                 e.Month == month)?.ScoreManagement?.Score)
-                         .Where(score => score.HasValue)
-                         .Select(score => score.Value)
-                         .ToList();
+                var addedComplexIds = new HashSet<string>();
+                foreach (var complexScore in complexScores)
+                {
+                    var relatedDivisionIds = complexScore?.Divisions ?? new int[0];
+                    var complexKey = string.Join("_", relatedDivisionIds);
+                    if (!addedComplexIds.Add(complexKey)) continue;
 
-                        var monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                    var relatedRatios = allDivisionNames
+                        .Where(d => relatedDivisionIds.Contains(d.Id))
+                        .ToList();
 
-                        var adjusted = Math.Round(monthlyAvg); // 환산 값
-                        var weightedScore = adjusted * (div.Ratio / 100.0);
-                        totalFinalScore += (double)weightedScore;
+                    double percentSum = (double)relatedRatios.Sum(r => r.Ratio);
 
-                        divisionResults.Add(new
-                        {
-                            divisionId = div.Id,
-                            average = Math.Round(monthlyAvg, 2),
-                            adjusted = adjusted,
-                            weighted = Math.Round((decimal)weightedScore, 2)
-                        });
-                    }
+                    var relatedScores = relatedRatios.SelectMany(r =>
+                        Enumerable.Range(1, 12)
+                            .Select(month => group.FirstOrDefault(e =>
+                                e.KpiDivisionId == r.Id && e.Month == month)?.ScoreManagement?.MaxScore)
+                            .Where(score => score.HasValue)
+                            .Select(score => score.Value)
+                    ).ToList();
 
-                    return new
+                    double avgScore = relatedScores.Any() ? relatedScores.Average() : 0;
+                    double adjusted = Math.Round(avgScore);
+                    double weighted = adjusted * (percentSum / 100.0);
+
+                    var allDivisionIds = allDivisionNames.Select(d => d.Id).ToHashSet();
+
+                    var gradeForManyDivisions = complexScores
+                        .Where(x => x.Divisions.Any(divId => allDivisionIds.Contains(divId)))
+                        .ToList();
+
+                    var newGrade = gradeForManyDivisions.FirstOrDefault(e => weighted >= e.MinScore && weighted<= e.MaxScore);
+
+                    divisionResults.Add(new
                     {
-                        id = first.UserId.ToString(),
-                        room = first.User.Room?.Name,
-                        name = first.User.FullName,
-                        position = first.User.Position?.Name,
-                        department = first.User.Team?.Name,
-                        date = first.CreatedAt.ToString("dd.MM.yyyy"),
-                        grades,
-                        finalScore = Math.Round(totalFinalScore, 2),
-                        divisions = divisionResults
-                    };
-                })
-                .ToList();
+                        divisionId = $"group_{complexKey}",
+                        average = Math.Round(avgScore, 2),
+                        adjusted = adjusted,
+                        weighted = Math.Round((decimal)weighted, 2),
+                        ratio = percentSum,
+                        grade = newGrade?.Grade ?? "-"
+                    });
+                }
+
+                var finalGradeScore = finalScore.FirstOrDefault(e =>
+                    totalFinalScore >= e.MinScore &&
+                    totalFinalScore <= e.MaxScore);
+
+
+                string finalGrade = finalGradeScore?.Grade ?? "-";
+
+                return new
+                {
+                    id = first.UserId.ToString(),
+                    room = first.User.Room?.Name,
+                    name = first.User.FullName,
+                    position = first.User.Position?.Name,
+                    department = first.User.Team?.Name,
+                    date = first.CreatedAt.ToString("dd.MM.yyyy"),
+                    grades,
+                    finalScore = Math.Round(totalFinalScore, 2),
+                    finalGrade,
+                    divisions = divisionResults
+                };
+            })
+            .ToList()); 
 
             var evaluationPeriods = allDivisionNames
                  .Select(div => new
@@ -627,7 +779,6 @@ namespace Kpi.Service.Service.Evaluation
                      name = div.Name,
                      percentage = div.Ratio,
                      periods = Enumerable.Range(1, 12).ToList(),
-                     description = "KPI Division Assessment"
                  })
                  .ToList();
 
@@ -648,7 +799,7 @@ namespace Kpi.Service.Service.Evaluation
                 .Select(g => new
                 {
                     divisionId = g.DivisionId,
-                    divisionName = g.Division.Name + " " + g.Division.Ratio,
+                    divisionName = g?.Division?.Name + " " + g?.Division?.Ratio,
                     grade = g.Grade,
                     score = g.Id,
                     scoreId = g.Id
@@ -669,10 +820,15 @@ namespace Kpi.Service.Service.Evaluation
                 .Select(g => new
                 {
                     divisionId = g.DivisionId,
-                    divisionName = g.Division.Name + " " + g.Division.Ratio,
+                    divisionName = g?.Division?.Name + " " + g?.Division?.Ratio,
                     grade = g.Grade,
-                    score = g.Score,
-                    scoreId = g.Id
+                    maxScore = g.MaxScore,
+                    minScore = g.MinScore,
+                    scoreId = g.Id,
+                    divisions = g.Divisions,
+                    isFinalScore = g.IsFinalScore,
+                    isMoreDivisions = g.IsMoreDivisions
+
                 })
                 .Cast<object>()
                 .ToList();
@@ -700,17 +856,60 @@ namespace Kpi.Service.Service.Evaluation
 
         public async ValueTask<bool> CreateScore(ScoreForCreationDTO dto)
         {
-            var existScore = await scoreManagementService.GetAsync(x => x.Grade == dto.Grade && x.DivisionId == dto.DivisionId && x.CreatedAt.Year == dto.Year);
+            var grade = new Domain.Entities.ScoreManagement();
 
-            if (existScore is not null) throw new KpiException(400, "exist_grade_this_divison");
-
-            var grade = new Domain.Entities.ScoreManagement
+            if (dto.IsMoreDivisions)
             {
-                DivisionId = dto.DivisionId,
-                Grade = dto.Grade,
-                Score = dto.Score,
-                CreatedAt = DateTime.Parse($"{dto.Year}-01-01")
-            };
+                if(dto?.Divisions != null && (dto?.Divisions?.Length == 0 || dto?.Divisions?.Length == 1)) throw new KpiException(400, "please_choose_division");
+
+                foreach (var item in dto?.Divisions)
+                {
+                    var existScore = await scoreManagementService.GetAsync(x => x.Grade == dto.Grade && x.IsMoreDivisions && x.CreatedAt.Year == dto.Year && x.Divisions.Contains(item));
+                    if (existScore is not null) throw new KpiException(400, "exist_grade_this_divison");
+                }
+
+                grade = new Domain.Entities.ScoreManagement
+                {
+                    Grade = dto.Grade,
+                    MaxScore = dto.MaxScore,
+                    MinScore = dto.MinScore,
+                    IsMoreDivisions = true,
+                    CreatedAt = DateTime.Parse($"{dto.Year}-01-01"),
+                    Divisions = dto.Divisions
+                };
+
+            }
+            else if (dto.IsFinalScore)
+            {
+                var existScore = await scoreManagementService.GetAsync(x => x.Grade == dto.Grade && x.IsFinalScore && x.CreatedAt.Year == dto.Year);
+
+                if (existScore is not null) throw new KpiException(400, "exist_grade_this_divison");
+
+                grade = new Domain.Entities.ScoreManagement
+                {
+                    Grade = dto.Grade,
+                    MaxScore = dto.MaxScore,
+                    MinScore = dto.MinScore,
+                    IsFinalScore = true,
+                    CreatedAt = DateTime.Parse($"{dto.Year}-01-01")
+                };
+            }
+            else
+            {
+                var existScore = await scoreManagementService.GetAsync(x => x.Grade == dto.Grade && x.DivisionId == dto.DivisionId && x.CreatedAt.Year == dto.Year);
+
+                if (existScore is not null) throw new KpiException(400, "exist_grade_this_divison");
+
+                grade = new Domain.Entities.ScoreManagement
+                {
+                    DivisionId = dto.DivisionId,
+                    Grade = dto.Grade,
+                    MaxScore = dto.MaxScore,
+                    MinScore = dto.MinScore,
+                    CreatedAt = DateTime.Parse($"{dto.Year}-01-01")
+                };
+            }
+                
 
             await scoreManagementService.CreateAsync(grade);
             await scoreManagementService.SaveChangesAsync();
@@ -723,7 +922,8 @@ namespace Kpi.Service.Service.Evaluation
 
             if (existScore is null) throw new KpiException(404, "score_not_found");
 
-            existScore.Score = dto.Score;
+            existScore.MaxScore = dto.MaxScore;
+            existScore.MinScore = dto.MinScore;
 
             scoreManagementService.UpdateAsync(existScore);
             await scoreManagementService.SaveChangesAsync();
