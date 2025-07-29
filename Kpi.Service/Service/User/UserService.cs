@@ -472,6 +472,7 @@ namespace Kpi.Service.Service.User
 
             existUser.PositionId = dto.PositionId;
             existUser.FullName = dto.FullName;
+            existUser.UpdatedAt = DateTime.UtcNow;
 
             if (dto.UpdatePassword)
             {

@@ -47,7 +47,15 @@ namespace Kpi.Service.Service.Repositories
 
         public async ValueTask SaveChangesAsync() => await dbContext.SaveChangesAsync();
 
-        public T UpdateAsync(T entity) => dbSet.Update(entity).Entity;
+        public T UpdateAsync(T entity)
+        {
+            if (entity is Auditable e)
+            {
+                e.UpdatedAt = DateTime.UtcNow;
+            }
+
+            return dbSet.Update(entity).Entity;
+        }
 
         public async ValueTask DeleteRangeAsync(IEnumerable<T> entities)
         {
