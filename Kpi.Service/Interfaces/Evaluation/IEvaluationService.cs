@@ -11,6 +11,7 @@ namespace Kpi.Service.Interfaces.Evaluation
         ValueTask<object> GetAllEvaluationByTeam(int year, int team);
         ValueTask<object> GetAllEvaluationByYear(int year);
         ValueTask<List<object>> GetEvaluationScores(int year);
+        ValueTask<List<object>> GetEvaluationScoreManagement(int year);
         ValueTask<List<object>> GetDivisionName(int year);
         ValueTask<bool> CreateScore(ScoreForCreationDTO dto);
         ValueTask<bool> UpdateScore(ScoreForUpdateDTO dto);

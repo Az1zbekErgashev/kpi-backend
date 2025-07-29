@@ -659,6 +659,27 @@ namespace Kpi.Service.Service.Evaluation
             return divisionGradeStats;
         }
 
+        public async ValueTask<List<object>> GetEvaluationScoreManagement(int year)
+        {
+            var evaluations = await scoreManagementService.GetAll(x => x.CreatedAt.Year == year)
+                .Include(x => x.Division)
+                .ToListAsync();
+
+            var divisionGradeStats = evaluations
+                .Select(g => new
+                {
+                    divisionId = g.DivisionId,
+                    divisionName = g.Division.Name + " " + g.Division.Ratio,
+                    grade = g.Grade,
+                    score = g.Score,
+                    scoreId = g.Id
+                })
+                .Cast<object>()
+                .ToList();
+
+            return divisionGradeStats;
+        }
+
         public async ValueTask<List<object>> GetDivisionName(int year)
         {
             var goal = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo).Include(x => x.Divisions).FirstOrDefaultAsync();
