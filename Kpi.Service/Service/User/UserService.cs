@@ -478,7 +478,7 @@ namespace Kpi.Service.Service.User
             {
                 if (existUser.Password.Equals(dto.CurrentPassword.Encrypt()))
                 {
-                    if (dto.NewPassword == dto.ConfirmPassword) throw new KpiException(404, "new_password_dont_match");
+                    if (dto.NewPassword != dto.ConfirmPassword) throw new KpiException(404, "new_password_dont_match");
                     else existUser.Password = dto.NewPassword.Encrypt();
                 }
                 else throw new KpiException(404, "old_password_not_correct");
