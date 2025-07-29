@@ -43,11 +43,11 @@ namespace Kpi.Api.Controllers.MonthlyTarget
         [HttpGet("team-leader")]
         [Authorize(Roles = "TeamLeader")]
         public async ValueTask<IActionResult> GetTeamLeader([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetTeamLeader(dto));
-        
+
         [HttpGet("leader")]
         [Authorize(Roles = "TeamLeader")]
-        public async ValueTask<IActionResult> GetTeamLeaderTarget([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetTeamLeaderTarget(dto));        
-       
+        public async ValueTask<IActionResult> GetTeamLeaderTarget([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetTeamLeaderTarget(dto));
+
         [HttpGet("member")]
         [Authorize(Roles = "TeamMember")]
         public async ValueTask<IActionResult> GetMemberTarget([FromQuery] MonthlyPerformanceForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await monthlyTargetService.GetMemberTarget(dto));

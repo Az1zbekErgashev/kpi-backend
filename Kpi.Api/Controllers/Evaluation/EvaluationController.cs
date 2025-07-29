@@ -19,7 +19,7 @@ namespace Kpi.Api.Controllers.Evaluation
 
         [HttpGet]
         public async ValueTask<IActionResult> GetAsync([FromQuery] EvaluationsForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetTeamEvaluationsAsync(dto));
-        
+
         [HttpGet("member")]
         [Authorize(Roles = "TeamLeader")]
         public async ValueTask<IActionResult> GetUserEvaluationsAsync([FromQuery] EvaluationsForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetUserEvaluationsAsync(dto));
@@ -47,17 +47,17 @@ namespace Kpi.Api.Controllers.Evaluation
 
 
         [HttpGet("all-score")]
-        public async Task<IActionResult> GetConfigForYear(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetEvaluationScores(year));  
-        
+        public async Task<IActionResult> GetConfigForYear(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetEvaluationScores(year));
+
         [HttpGet("divisions-name")]
         public async Task<IActionResult> GetDivisionName(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetDivisionName(year));
-        
+
         [HttpPost("score")]
-        public async Task<IActionResult> GetDivisionName(ScoreForCreationDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.CreateScore(dto)); 
-        
+        public async Task<IActionResult> GetDivisionName(ScoreForCreationDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.CreateScore(dto));
+
         [HttpPut("score")]
-        public async Task<IActionResult> UpdateScore(ScoreForUpdateDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.UpdateScore(dto));     
-        
+        public async Task<IActionResult> UpdateScore(ScoreForUpdateDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.UpdateScore(dto));
+
         [HttpDelete("score/{id}")]
         public async Task<IActionResult> DeleteScore(int id) => ResponseHandler.ReturnIActionResponse(await evaluationService.DeleteScore(id));
     }

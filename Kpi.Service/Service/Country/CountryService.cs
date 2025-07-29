@@ -17,7 +17,7 @@ namespace Kpi.Service.Service.Country
 
         public async ValueTask<List<CountryModel>> GetAsync()
         {
-            var countrys = await countryRepository.GetAll(x => x.IsDeleted == 0).ToListAsync();
+            var countrys = await countryRepository.GetAll().ToListAsync();
 
             var model = countrys.Select(x => new CountryModel().MapFromEntity(x)).ToList();
             return model;
@@ -25,11 +25,10 @@ namespace Kpi.Service.Service.Country
 
         public async ValueTask<bool> DeleteAsync(int id)
         {
-            var country = await countryRepository.GetAll(x => x.IsDeleted == 0 && x.Id == id).FirstOrDefaultAsync();
+            var country = await countryRepository.GetAll(x => x.Id == id).FirstOrDefaultAsync();
 
             if (country is null) throw new KpiException(404, "country_not_found");
 
-            country.IsDeleted = 1;
             country.UpdatedAt = DateTime.UtcNow;
 
             countryRepository.UpdateAsync(country);

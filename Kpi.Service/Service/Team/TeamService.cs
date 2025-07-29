@@ -20,7 +20,7 @@ namespace Kpi.Service.Service.Team
 
         public async ValueTask<PagedResult<TeamModel>> GetAllAsync(TeamForFilterDTO @dto)
         {
-            var allTeams = _teamRepository.GetAll(x => x.IsDeleted == dto.IsDeleted).Include(x => x.Users).OrderByDescending(x => x.UpdatedAt).AsQueryable();
+            var allTeams = _teamRepository.GetAll().Include(x => x.Users).OrderByDescending(x => x.UpdatedAt).AsQueryable();
 
             if (!string.IsNullOrEmpty(dto.Name)) allTeams = allTeams.Where(x => x.Name.Contains(dto.Name));
 
@@ -77,7 +77,7 @@ namespace Kpi.Service.Service.Team
 
         public async ValueTask<TeamModel> GetByIdAsync(int id)
         {
-            var existTeam = await _teamRepository.GetAsync(x => x.Id == id && x.IsDeleted == 0);
+            var existTeam = await _teamRepository.GetAsync(x => x.Id == id);
 
             if (existTeam == null) throw new KpiException(404, "team_not_found");
 
@@ -86,21 +86,17 @@ namespace Kpi.Service.Service.Team
 
         public async ValueTask<List<TeamModel>> GetAsync()
         {
-            var allTeams = await _teamRepository.GetAll(x => x.IsDeleted == 0).ToListAsync();
+            var allTeams = await _teamRepository.GetAll().ToListAsync();
 
             return allTeams.Select(x => new TeamModel().MapFromEntity(x)).ToList();
         }
 
         public async ValueTask<bool> DeleteAsync(int id)
         {
-            var existTeam = await _teamRepository.GetAsync(x => x.Id == id && x.IsDeleted == 0);
+            var existTeam = await _teamRepository.DeleteAsync(id);
 
-            if (existTeam == null) throw new KpiException(404, "team_not_found");
+            if (!existTeam) throw new KpiException(404, "team_not_found");
 
-            existTeam.UpdatedAt = DateTime.UtcNow;
-            existTeam.IsDeleted = 1;
-
-            _teamRepository.UpdateAsync(existTeam);
             await _teamRepository.SaveChangesAsync();
 
             return true;
@@ -108,7 +104,7 @@ namespace Kpi.Service.Service.Team
 
         public async ValueTask<TeamModel> UpdateAsync(TeamForUpdateDTO @dto)
         {
-            var existTeam = await _teamRepository.GetAsync(x => x.Id == dto.Id && x.IsDeleted == 0);
+            var existTeam = await _teamRepository.GetAsync(x => x.Id == dto.Id);
 
             if (existTeam == null) throw new KpiException(404, "team_not_found");
 

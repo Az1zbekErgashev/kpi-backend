@@ -2,7 +2,7 @@
 {
     public class UpdateGradeRuleDTO
     {
-        public int? Id { get; set; }  
+        public int? Id { get; set; }
         public string GradeLabel { get; set; }
         public decimal Score { get; set; }
     }

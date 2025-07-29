@@ -76,5 +76,10 @@ namespace Kpi.Api.Controllers.User
         [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> UpdateAsync(UserForUpdateDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.UpdateAsync(@dto));
+
+        [HttpPut]
+        [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> UpdateAsync(UserForUpdateByTokenDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.UpdateAsync(@dto));
     }
 }

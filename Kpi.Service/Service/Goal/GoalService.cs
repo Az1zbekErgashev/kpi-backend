@@ -1,8 +1,4 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.InkML;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using Kpi.Domain.Entities;
-using Kpi.Domain.Entities.Comment;
+﻿using Kpi.Domain.Entities.Comment;
 using Kpi.Domain.Entities.Goal;
 using Kpi.Domain.Enum;
 using Kpi.Domain.Models.Goal;
@@ -135,7 +131,7 @@ namespace Kpi.Service.Service.Goal
 
         public async ValueTask<GoalModel> GetByIdAsync(int id)
         {
-            var model = await _goalRepository.GetAll(x => x.Id == id && x.IsDeleted == 0)
+            var model = await _goalRepository.GetAll(x => x.Id == id)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
@@ -153,7 +149,7 @@ namespace Kpi.Service.Service.Goal
 
         public async ValueTask<GoalModel> GetByUserIdAsync(int id, int year)
         {
-            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == id && x.IsDeleted == 0 && x.CreatedAt.Year == year && x.CreatedBy.Role == Domain.Enum.Role.TeamLeader)
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == id && x.CreatedAt.Year == year && x.CreatedBy.Role == Domain.Enum.Role.TeamLeader)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
@@ -181,7 +177,7 @@ namespace Kpi.Service.Service.Goal
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var model = await _goalRepository.GetAll(x => x.CreatedById == userId && x.CreatedBy.TeamId == teamId && x.IsDeleted == 0 && x.CreatedAt.Year == year)
+            var model = await _goalRepository.GetAll(x => x.CreatedById == userId && x.CreatedBy.TeamId == teamId && x.CreatedAt.Year == year)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
@@ -199,7 +195,7 @@ namespace Kpi.Service.Service.Goal
 
         public async ValueTask<GoalModel> GetByCeoGoal(int year)
         {
-            var model = await _goalRepository.GetAll(x => x.CreatedBy.Role == Domain.Enum.Role.Ceo && x.CreatedAt.Year == year && x.IsDeleted == 0)
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.Role == Domain.Enum.Role.Ceo && x.CreatedAt.Year == year)
                .Include(x => x.CreatedBy)
                .ThenInclude(x => x.Team)
                .Include(x => x.CreatedBy)
@@ -219,7 +215,7 @@ namespace Kpi.Service.Service.Goal
             var userId = GetUserIdFromContext();
 
             var existUser = await _userRepository
-             .GetAll(x => x.Id == userId && x.Role == Domain.Enum.Role.Ceo && x.IsDeleted == 0)
+             .GetAll(x => x.Id == userId && x.Role == Domain.Enum.Role.Ceo)
              .FirstOrDefaultAsync();
 
             if (existUser == null) throw new KpiException(404, "user_not_found");
@@ -230,7 +226,7 @@ namespace Kpi.Service.Service.Goal
             .ToListAsync();
 
             bool ceoGoalExists = await _goalRepository
-               .GetAll(goal => goal.CreatedAt.Year == year && ceoIds.Contains(goal.CreatedById) && goal.IsDeleted == 0)
+               .GetAll(goal => goal.CreatedAt.Year == year && ceoIds.Contains(goal.CreatedById))
                .AnyAsync();
 
             if (ceoGoalExists)
@@ -246,7 +242,7 @@ namespace Kpi.Service.Service.Goal
             var userId = GetUserIdFromContext();
 
             var existUser = await _userRepository
-             .GetAll(x => x.Id == userId && (x.Role == Domain.Enum.Role.TeamLeader || x.Role == Domain.Enum.Role.TeamMember) && x.IsDeleted == 0)
+             .GetAll(x => x.Id == userId && (x.Role == Domain.Enum.Role.TeamLeader || x.Role == Domain.Enum.Role.TeamMember))
              .Include(x => x.CreatedGoals)
              .FirstOrDefaultAsync();
 
@@ -254,7 +250,7 @@ namespace Kpi.Service.Service.Goal
 
             DateTime parseYear = (DateTime)(dto.CreatetAt == null ? DateTime.UtcNow : dto.CreatetAt);
 
-            var existGoal = existUser.CreatedGoals.Where(x => x.CreatedAt.Year == parseYear.Year && x.IsDeleted == 0).FirstOrDefault();
+            var existGoal = existUser.CreatedGoals.Where(x => x.CreatedAt.Year == parseYear.Year).FirstOrDefault();
 
             if (existGoal != null) throw new KpiException(400, "goal_exist");
 
@@ -264,7 +260,7 @@ namespace Kpi.Service.Service.Goal
 
         public async ValueTask<bool> ChangeGoalStatus(ChangeGoalStatusDTO dto)
         {
-            var existGoal = await _goalRepository.GetAll(x => x.Id == dto.GoalId && x.IsDeleted == 0)
+            var existGoal = await _goalRepository.GetAll(x => x.Id == dto.GoalId)
                 .Include(x => x.Comments)
                 .FirstOrDefaultAsync();
 
@@ -293,7 +289,7 @@ namespace Kpi.Service.Service.Goal
 
         public async ValueTask<GoalModel> UpdateAsync(GoalForCreationDTO dto)
         {
-            var existGoal = await _goalRepository.GetAll(x => x.Id == dto.GoalId && x.IsDeleted == 0)
+            var existGoal = await _goalRepository.GetAll(x => x.Id == dto.GoalId)
                 .Include(x => x.CreatedBy)
                 .Include(x => x.Comments)
                 .Include(x => x.Divisions)
@@ -465,7 +461,7 @@ namespace Kpi.Service.Service.Goal
 
         public async ValueTask<bool> SendGoalRequest(GoalForSendDTO @dto)
         {
-            var existGoal = await _goalRepository.GetAll(x => x.Id == dto.GoalId && x.IsDeleted == 0)
+            var existGoal = await _goalRepository.GetAll(x => x.Id == dto.GoalId)
                 .Include(x => x.Comments)
                 .FirstOrDefaultAsync();
 
@@ -509,7 +505,7 @@ namespace Kpi.Service.Service.Goal
 
             if (existUserThisTeam == null) throw new KpiException(404, "team_leader_not_found");
 
-            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId && x.IsDeleted == 0 && x.CreatedAt.Year == year && x.CreatedBy.Role == Role.TeamLeader && x.Status == GoalStatus.Approved)
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId && x.CreatedAt.Year == year && x.CreatedBy.Role == Role.TeamLeader && x.Status == GoalStatus.Approved)
                 .Include(x => x.CreatedBy)
                 .ThenInclude(x => x.Team)
                 .Include(x => x.CreatedBy)
@@ -527,12 +523,12 @@ namespace Kpi.Service.Service.Goal
 
         public async ValueTask<TeamAndRoom> GetRoomAndTeam(int teamId)
         {
-            var team = await teamRepository.GetAll(x => x.Id == teamId && x.IsDeleted == 0).Include(x => x.Users).ThenInclude(x => x.Room).FirstOrDefaultAsync();
+            var team = await teamRepository.GetAll(x => x.Id == teamId).Include(x => x.Users).ThenInclude(x => x.Room).FirstOrDefaultAsync();
 
 
             if (team is null) throw new KpiException(404, "team_not_found");
 
-            var activeUsers = team?.Users.Where(x => x.IsDeleted == 0);
+            var activeUsers = team?.Users;
 
             string teamName = team.Name;
             string roomName = activeUsers?.FirstOrDefault()?.Room?.Name;
@@ -553,12 +549,12 @@ namespace Kpi.Service.Service.Goal
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var team = await teamRepository.GetAll(x => x.Id == teamId && x.IsDeleted == 0).Include(x => x.Users).ThenInclude(x => x.Room).FirstOrDefaultAsync();
+            var team = await teamRepository.GetAll(x => x.Id == teamId).Include(x => x.Users).ThenInclude(x => x.Room).FirstOrDefaultAsync();
 
 
             if (team is null) throw new KpiException(404, "team_not_found");
 
-            var activeUsers = team?.Users.Where(x => x.IsDeleted == 0);
+            var activeUsers = team?.Users;
 
             string teamName = team.Name;
             string roomName = activeUsers?.FirstOrDefault()?.Room?.Name;
@@ -601,7 +597,7 @@ namespace Kpi.Service.Service.Goal
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId && x.IsDeleted == 0 && x.CreatedAt.Year == year && x.CreatedBy.Role == Domain.Enum.Role.TeamLeader)
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId && x.CreatedAt.Year == year && x.CreatedBy.Role == Domain.Enum.Role.TeamLeader)
             .Include(x => x.CreatedBy)
             .ThenInclude(x => x.Team)
             .Include(x => x.CreatedBy)
@@ -616,7 +612,7 @@ namespace Kpi.Service.Service.Goal
 
             return new GoalModel().MapFromEntity(model);
         }
-        
+
         public async ValueTask<GoalModel> GetTeamMemberGoal(int year, int id)
         {
             var user = httpContextAccessor?.HttpContext?.User
@@ -635,10 +631,9 @@ namespace Kpi.Service.Service.Goal
 
             if (existUserThisTeam == null) throw new KpiException(404, "teamId_or_userId_notcorrect");
 
-            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId 
-            && x.IsDeleted == 0 
-            && x.CreatedAt.Year == year 
-            && x.CreatedBy.Role == Domain.Enum.Role.TeamMember 
+            var model = await _goalRepository.GetAll(x => x.CreatedBy.TeamId == teamId
+            && x.CreatedAt.Year == year
+            && x.CreatedBy.Role == Domain.Enum.Role.TeamMember
             && x.CreatedById == id)
 
             .Include(x => x.CreatedBy)

@@ -13,7 +13,7 @@ namespace Kpi.Service.DTOs.Evaluation
         [Required]
         public int DivisionId { get; set; }
 
-        [Required] 
+        [Required]
         public int Year { get; set; }
     }
 }

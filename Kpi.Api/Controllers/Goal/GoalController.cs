@@ -87,7 +87,7 @@ namespace Kpi.Api.Controllers.Goal
 
         [HttpDelete("delete-all-goal")]
         public async ValueTask<IActionResult> DeleteAllData() => ResponseHandler.ReturnIActionResponse(await goalService.DeleteAllData());
-        
+
 
     }
 }

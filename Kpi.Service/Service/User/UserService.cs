@@ -29,7 +29,7 @@ namespace Kpi.Service.Service.User
         }
         public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)
         {
-            var existUser = await _userRepository.GetAsync(x => x.UserName == dto.UserName && x.IsDeleted == 0);
+            var existUser = await _userRepository.GetAsync(x => x.UserName == dto.UserName);
 
             if (existUser != null) throw new KpiException(400, "this_user_already_exist");
 
@@ -37,8 +37,7 @@ namespace Kpi.Service.Service.User
             {
                 var isExistTeamLeader = await _teamRepository.GetAll(
                     x => x.Id == dto.TeamId &&
-                         x.IsDeleted == 0 &&
-                         x.Users.Any(u => u.Role == Role.TeamLeader && u.IsDeleted == 0)
+                         x.Users.Any(u => u.Role == Role.TeamLeader)
                 ).FirstOrDefaultAsync();
 
                 if (isExistTeamLeader != null)
@@ -65,9 +64,9 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<UserModel> UpdateAsync(UserForUpdateDTO @dto)
         {
-            var existUser = await _userRepository.GetAsync(x => x.Id == dto.Id && x.IsDeleted == 0);
+            var existUser = await _userRepository.GetAsync(x => x.Id == dto.Id);
 
-            var existuserName = await _userRepository.GetAsync(x => x.UserName == dto.UserName && x.Id != dto.Id && x.IsDeleted == 0);
+            var existuserName = await _userRepository.GetAsync(x => x.UserName == dto.UserName && x.Id != dto.Id);
 
             if (existUser == null) throw new KpiException(404, "user_not_found");
 
@@ -77,8 +76,7 @@ namespace Kpi.Service.Service.User
             {
                 var isExistTeamLeader = await _teamRepository.GetAll(
                     x => x.Id == dto.TeamId &&
-                         x.IsDeleted == 0 &&
-                         x.Users.Any(u => u.Role == Role.TeamLeader && u.IsDeleted == 0)
+                         x.Users.Any(u => u.Role == Role.TeamLeader)
                 ).FirstOrDefaultAsync();
 
                 if (isExistTeamLeader != null)
@@ -102,21 +100,17 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<bool> DeleteAsync([Required] int id)
         {
-            var existUser = await _userRepository.GetAsync(x => x.Id == id && x.IsDeleted == 0);
+            var existUser = await _userRepository.DeleteAsync(id);
 
-            if (existUser == null) throw new KpiException(404, "user_not_found");
+            if (!existUser) throw new KpiException(404, "user_not_found");
 
-            existUser.UpdatedAt = DateTime.UtcNow;
-            existUser.IsDeleted = 1;
-
-            _userRepository.UpdateAsync(existUser);
             await _userRepository.SaveChangesAsync();
             return true;
         }
 
         public async ValueTask<PagedResult<UserModel>> GetAllAsync(UserForFilterDTO @dto)
         {
-            var query = _userRepository.GetAll(x => x.IsDeleted == dto.IsDeleted && x.Id != 1)
+            var query = _userRepository.GetAll(x => x.Id != 1)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -127,7 +121,7 @@ namespace Kpi.Service.Service.User
 
             if (!string.IsNullOrEmpty(dto.Text))
             {
-                query = query.Where(x => x.UserName.Contains(dto.Text) || x.FullName.Contains(dto.Text) || (x.Team != null && x.Team.IsDeleted == 0 && x.Team.Name.Contains(dto.Text)));
+                query = query.Where(x => x.UserName.Contains(dto.Text) || x.FullName.Contains(dto.Text) || (x.Team != null && x.Team.Name.Contains(dto.Text)));
             }
 
             int totalCount = await query.CountAsync();
@@ -183,7 +177,7 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<UserModel> GetByIdAsync([Required] int id)
         {
-            var existUser = await _userRepository.GetAll(x => x.Id == id && x.IsDeleted == 0)
+            var existUser = await _userRepository.GetAll(x => x.Id == id)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -203,7 +197,7 @@ namespace Kpi.Service.Service.User
                 throw new InvalidCredentialException();
             }
 
-            var existUser = await _userRepository.GetAll(x => x.Id == userId && x.IsDeleted == 0)
+            var existUser = await _userRepository.GetAll(x => x.Id == userId)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -218,7 +212,7 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<PagedResult<UserModelForCEO>> GetUsersForCEO(UserForFilterCEOSideDTO dto)
         {
-            var query = _userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader && x.IsDeleted == 0 && x.Team.IsDeleted == 0 && x.Room.IsDeleted == 0)
+            var query = _userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -313,7 +307,7 @@ namespace Kpi.Service.Service.User
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var users = _userRepository.GetAll(x => x.IsDeleted == 0 && x.Team.IsDeleted == 0 && x.Room.IsDeleted == 0)
+            var users = _userRepository.GetAll()
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -398,7 +392,7 @@ namespace Kpi.Service.Service.User
 
             if (role != Role.TeamLeader) throw new KpiException(400, "inccorect_role");
 
-            var users = _userRepository.GetAll(x => x.IsDeleted == 0 && x.Id == userId && x.TeamId == teamId && x.Team.IsDeleted == 0 && x.Room.IsDeleted == 0)
+            var users = _userRepository.GetAll(x => x.Id == userId && x.TeamId == teamId)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -459,6 +453,39 @@ namespace Kpi.Service.Service.User
                 );
 
             return pagedResult;
+        }
+
+        public async ValueTask<UserModel> UpdateAsync(UserForUpdateByTokenDTO dto)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+             ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var existUser = await _userRepository.GetAsync(x => x.Id == userId);
+
+            if (existUser == null) throw new KpiException(404, "user_not_found");
+
+            existUser.PositionId = dto.PositionId;
+            existUser.FullName = dto.FullName;
+
+            if (dto.UpdatePassword)
+            {
+                if (existUser.Password.Equals(dto.CurrentPassword.Encrypt()))
+                {
+                    if (dto.NewPassword == dto.ConfirmPassword) throw new KpiException(404, "new_password_dont_match");
+                    else existUser.Password = dto.NewPassword.Encrypt();
+                }
+                else throw new KpiException(404, "old_password_not_correct");
+            }
+
+            var model = _userRepository.UpdateAsync(existUser);
+            await _userRepository.SaveChangesAsync();
+            return new UserModel().MapFromEntity(model);
         }
     }
 }

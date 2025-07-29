@@ -16,21 +16,22 @@ namespace Kpi.Domain.Models.User
         public string? Room { get; set; }
         public int IsDeleted { get; set; }
         public PositionModel? Position { get; set; }
+        public int? PositionId { get; set; }
 
         public virtual UserModel MapFromEntity(Entities.User.User entity)
         {
             UserName = entity.UserName;
             FullName = entity.FullName;
             Role = entity.Role;
-            TeamId = entity?.Team?.IsDeleted == 0 ? entity?.TeamId : null;
+            TeamId = entity?.TeamId;
             CreatedAt = entity.CreatedAt;
             UpdatedAt = entity.UpdatedAt;
             Id = entity.Id;
-            Team = entity?.Team?.IsDeleted == 0 ? entity?.Team?.Name : null;
-            IsDeleted = entity.IsDeleted;
-            Room = entity?.Room?.IsDeleted == 0 ? entity?.Room?.Name : null;
-            RoomId = entity?.Room?.IsDeleted == 0 ? entity?.RoomId : null;
+            Team = entity?.Team?.Name;
+            Room = entity?.Room?.Name;
+            RoomId = entity?.RoomId;
             Position = entity?.Position is null ? null : new PositionModel().MapFromEntity(entity.Position);
+            PositionId = entity?.PositionId;
             return this;
         }
     }

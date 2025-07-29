@@ -8,5 +8,5 @@ namespace Kpi.Domain.Entities
         public string Grade { get; set; }
         public int DivisionId { get; set; }
         public Entities.Goal.Division Division { get; set; }
-}
+    }
 }

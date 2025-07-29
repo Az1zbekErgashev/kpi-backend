@@ -44,8 +44,8 @@ namespace Kpi.Infrastructure.Contexts
                 .HasOne(t => t.Position)
                 .WithMany()
                 .HasForeignKey(u => u.PositionId)
-                .OnDelete(DeleteBehavior.Restrict);  
-            
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Evaluation>()
                 .HasOne(t => t.ScoreManagement)
                 .WithMany()
@@ -56,7 +56,7 @@ namespace Kpi.Infrastructure.Contexts
                 .HasOne(t => t.Division)
                 .WithMany()
                 .HasForeignKey(u => u.DivisionId)
-                .OnDelete(DeleteBehavior.Cascade); 
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Room>()
                 .HasMany(t => t.Users)
@@ -109,8 +109,8 @@ namespace Kpi.Infrastructure.Contexts
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(e => e.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);            
-            
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Evaluation>()
                 .HasOne(x => x.KpiDivision)
                 .WithMany()

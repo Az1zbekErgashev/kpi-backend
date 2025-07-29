@@ -32,7 +32,7 @@ namespace Kpi.Service.Service.Room
         }
         public async ValueTask<RoomModel> UpdateAsync(RoomForUpdateDTO @dto)
         {
-            var existRoom = await _roomRepository.GetAsync(x => x.Id == @dto.Id && x.IsDeleted == 0);
+            var existRoom = await _roomRepository.GetAsync(x => x.Id == @dto.Id);
 
             if (existRoom == null) throw new KpiException(404, "room_not_found");
 
@@ -47,14 +47,10 @@ namespace Kpi.Service.Service.Room
 
         public async ValueTask<bool> DeleteAsync(int id)
         {
-            var existRoom = await _roomRepository.GetAsync(x => x.Id == id && x.IsDeleted == 0);
+            var existRoom = await _roomRepository.DeleteAsync(id);
 
-            if (existRoom == null) throw new KpiException(404, "room_not_found");
+            if (!existRoom) throw new KpiException(404, "room_not_found");
 
-            existRoom.IsDeleted = 1;
-            existRoom.UpdatedAt = DateTime.UtcNow;
-
-            _roomRepository.UpdateAsync(existRoom);
             await _roomRepository.SaveChangesAsync();
 
             return true;
@@ -62,7 +58,7 @@ namespace Kpi.Service.Service.Room
 
         public async ValueTask<RoomModel> GetByIdAsync(int id)
         {
-            var existRoom = await _roomRepository.GetAsync(x => x.Id == id && x.IsDeleted == 0);
+            var existRoom = await _roomRepository.GetAsync(x => x.Id == id);
 
             if (existRoom == null) throw new KpiException(404, "room_not_found");
 
@@ -71,7 +67,7 @@ namespace Kpi.Service.Service.Room
 
         public async ValueTask<PagedResult<RoomModel>> GetAsync(RoomForFilterDTO dto)
         {
-            var allRooms = _roomRepository.GetAll(x => x.IsDeleted == dto.IsDeleted).Include(x => x.Users).OrderByDescending(x => x.UpdatedAt).AsQueryable();
+            var allRooms = _roomRepository.GetAll().Include(x => x.Users).OrderByDescending(x => x.UpdatedAt).AsQueryable();
 
             if (!string.IsNullOrEmpty(dto.Name)) allRooms = allRooms.Where(x => x.Name.Contains(dto.Name));
 
@@ -128,7 +124,7 @@ namespace Kpi.Service.Service.Room
 
         public async ValueTask<List<RoomModel>> GetAsync()
         {
-            var allRooms = await _roomRepository.GetAll(x => x.IsDeleted == 0).ToListAsync();
+            var allRooms = await _roomRepository.GetAll().ToListAsync();
             return allRooms.Select(x => new RoomModel().MapFromEntity(x)).ToList();
         }
     }

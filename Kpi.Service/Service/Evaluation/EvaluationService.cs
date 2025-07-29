@@ -1,14 +1,11 @@
-﻿using DocumentFormat.OpenXml.InkML;
-using Kpi.Domain.Enum;
+﻿using Kpi.Domain.Enum;
 using Kpi.Infrastructure.Contexts;
 using Kpi.Service.DTOs.Evaluation;
 using Kpi.Service.Exception;
 using Kpi.Service.Interfaces.Evaluation;
 using Kpi.Service.Interfaces.IRepositories;
-using MathNet.Numerics.Distributions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Security.Authentication;
 using System.Security.Claims;
 
@@ -135,7 +132,6 @@ namespace Kpi.Service.Service.Evaluation
             var teamId = dto.TeamId ?? teamIdByToken;
 
             var goalWithDivisions = await goalService.GetAll(x =>
-                x.IsDeleted == 0 &&
                 x.CreatedAt.Year == dto.Year &&
                 x.CreatedBy.Role == Role.Ceo)
                 .Include(x => x.Divisions)
@@ -147,7 +143,7 @@ namespace Kpi.Service.Service.Evaluation
             var allDivisions = goalWithDivisions.Divisions.ToList();
 
             var employees = await _context.Users
-                    .Where(e => e.TeamId == teamId && e.IsDeleted == 0)
+                    .Where(e => e.TeamId == teamId)
                     .Include(x => x.Position)
                     .ToListAsync();
 
@@ -157,7 +153,7 @@ namespace Kpi.Service.Service.Evaluation
                 .Where(e => employeeIds.Contains(e.UserId)
                             && e.Year == dto.Year
                             && e.Month == dto.Month
-                            && e.User.IsDeleted == 0)
+                                )
                 .Include(e => e.KpiDivision)
                 .Include(x => x.ScoreManagement)
                 .ToListAsync();
@@ -165,12 +161,12 @@ namespace Kpi.Service.Service.Evaluation
             var result = employees?.Select(emp =>
             {
                 var employeeEvals = evaluations
-                    ?.Where(e => e.UserId == emp.Id && emp.IsDeleted == 0)
+                    ?.Where(e => e.UserId == emp.Id)
                     ?.ToList();
 
                 var divisionEvaluations = allDivisions?.Select(division =>
                 {
-                    var eval = employeeEvals?.FirstOrDefault(e => e.KpiDivisionId == division.Id && e.IsDeleted == 0);
+                    var eval = employeeEvals?.FirstOrDefault(e => e.KpiDivisionId == division.Id);
 
                     return new DivisionEvaluationDto
                     {
@@ -214,7 +210,6 @@ namespace Kpi.Service.Service.Evaluation
             var teamId = teamIdByToken;
 
             var goalWithDivisions = await goalService.GetAll(x =>
-                x.IsDeleted == 0 &&
                 x.CreatedAt.Year == dto.Year &&
                 x.CreatedBy.Role == Role.Ceo)
                 .Include(x => x.Divisions)
@@ -226,7 +221,7 @@ namespace Kpi.Service.Service.Evaluation
             var allDivisions = goalWithDivisions.Divisions.ToList();
 
             var employees = await _context.Users
-                    .Where(e => e.TeamId == teamId && e.IsDeleted == 0 && e.Id == dto.UserId)
+                    .Where(e => e.TeamId == teamId && e.Id == dto.UserId)
                     .Include(x => x.Position)
                     .ToListAsync();
 
@@ -239,7 +234,7 @@ namespace Kpi.Service.Service.Evaluation
                 .Where(e => employeeIds.Contains(e.UserId)
                             && e.Year == dto.Year
                             && e.Month == dto.Month
-                            && e.User.IsDeleted == 0)
+                           )
                 .Include(e => e.KpiDivision)
                 .Include(x => x.ScoreManagement)
                 .ToListAsync();
@@ -247,12 +242,12 @@ namespace Kpi.Service.Service.Evaluation
             var result = employees?.Select(emp =>
             {
                 var employeeEvals = evaluations
-                    ?.Where(e => e.UserId == emp.Id && emp.IsDeleted == 0)
+                    ?.Where(e => e.UserId == emp.Id)
                     ?.ToList();
 
                 var divisionEvaluations = allDivisions?.Select(division =>
                 {
-                    var eval = employeeEvals?.FirstOrDefault(e => e.KpiDivisionId == division.Id && e.IsDeleted == 0);
+                    var eval = employeeEvals?.FirstOrDefault(e => e.KpiDivisionId == division.Id);
 
                     return new DivisionEvaluationDto
                     {
@@ -292,11 +287,11 @@ namespace Kpi.Service.Service.Evaluation
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo && x.IsDeleted == 0).Include(x => x.Divisions).FirstOrDefaultAsync();
+            var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo).Include(x => x.Divisions).FirstOrDefaultAsync();
 
             if (divisions is null) throw new KpiException(404, "goal_not_found");
 
-            var evaluations = await evaluationService.GetAll(x => x.IsDeleted == 0 && x.Year == year)
+            var evaluations = await evaluationService.GetAll(x => x.Year == year)
                 .Include(x => x.User)
                 .ThenInclude(x => x.Position)
                 .Include(x => x.User)
@@ -351,7 +346,7 @@ namespace Kpi.Service.Service.Evaluation
                              group.FirstOrDefault(e =>
                                  e.KpiDivisionId == div.Id &&
                                  e.Month == month)?.ScoreManagement?.Score)
-                         .Where(score => score.HasValue) 
+                         .Where(score => score.HasValue)
                          .Select(score => score.Value)
                          .ToList();
 
@@ -414,11 +409,11 @@ namespace Kpi.Service.Service.Evaluation
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo && x.IsDeleted == 0).Include(x => x.Divisions).FirstOrDefaultAsync();
+            var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo).Include(x => x.Divisions).FirstOrDefaultAsync();
 
             if (divisions is null) throw new KpiException(404, "goal_not_found");
 
-            var evaluations = await evaluationService.GetAll(x => x.IsDeleted == 0 && x.Year == year && x.User.TeamId == teamId)
+            var evaluations = await evaluationService.GetAll(x => x.Year == year && x.User.TeamId == teamId)
                 .Include(x => x.User)
                 .ThenInclude(x => x.Position)
                 .Include(x => x.User)
@@ -533,13 +528,13 @@ namespace Kpi.Service.Service.Evaluation
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo && x.IsDeleted == 0)
+            var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo)
                 .Include(x => x.Divisions)
                 .FirstOrDefaultAsync();
 
             if (divisions is null) throw new KpiException(404, "goal_not_found");
 
-            var evaluations = await evaluationService.GetAll(x => x.IsDeleted == 0 && x.Year == year)
+            var evaluations = await evaluationService.GetAll(x => x.Year == year)
                 .Include(x => x.User)
                 .ThenInclude(x => x.Position)
                 .Include(x => x.User)
@@ -645,7 +640,7 @@ namespace Kpi.Service.Service.Evaluation
 
         public async ValueTask<List<object>> GetEvaluationScores(int year)
         {
-            var evaluations = await scoreManagementService.GetAll(x => x.IsDeleted == 0 && x.CreatedAt.Year == year)
+            var evaluations = await scoreManagementService.GetAll(x => x.CreatedAt.Year == year)
                 .Include(x => x.Division)
                 .ToListAsync();
 
@@ -658,7 +653,7 @@ namespace Kpi.Service.Service.Evaluation
                     score = g.Id,
                     scoreId = g.Id
                 })
-                .Cast<object>() 
+                .Cast<object>()
                 .ToList();
 
             return divisionGradeStats;
@@ -666,16 +661,16 @@ namespace Kpi.Service.Service.Evaluation
 
         public async ValueTask<List<object>> GetDivisionName(int year)
         {
-            var goal = await goalService.GetAll(x => x.CreatedAt.Year == year && x.IsDeleted == 0 && x.CreatedBy.Role == Role.Ceo).Include(x => x.Divisions).FirstOrDefaultAsync();
+            var goal = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo).Include(x => x.Divisions).FirstOrDefaultAsync();
 
             if (goal is null) throw new KpiException(400, "goal_not_found");
 
             var divisionGradeStats = goal.Divisions.Select(g => new
-             {
-                 Id = g.Id,
-                 Name = g.Name + " "+ g.Ratio,
-                 
-             })
+            {
+                Id = g.Id,
+                Name = g.Name + " " + g.Ratio,
+
+            })
             .Cast<object>()
             .ToList();
 

@@ -27,17 +27,17 @@ namespace Kpi.Domain.Models.Goal
             Id = entity.Id;
             UserName = entity.UserName;
             FullName = entity.FullName;
-            Room = entity?.Room?.IsDeleted == 0 ? entity?.Room?.Name : null;
-            Team = entity?.Team?.IsDeleted == 0 ? entity?.Team?.Name : null;
-            RoomId = entity?.Room?.IsDeleted == 0 ? entity?.RoomId : null;
-            TeamId = entity?.Team?.IsDeleted == 0 ? entity?.TeamId : null;
-            Status = entity?.CreatedGoals?.Where(x => x.CreatedAt.Year == int.Parse(year) && x.IsDeleted == 0)?.FirstOrDefault()?.MonthlyPerformance?.Where(x => x.Year == int.Parse(year) && x.Month == int.Parse(month) && x.IsSended)?.FirstOrDefault()?.Status
+            Room = entity?.Room?.Name;
+            Team = entity?.Team?.Name;
+            RoomId = entity?.RoomId;
+            TeamId = entity?.TeamId;
+            Status = entity?.CreatedGoals?.Where(x => x.CreatedAt.Year == int.Parse(year))?.FirstOrDefault()?.MonthlyPerformance?.Where(x => x.Year == int.Parse(year) && x.Month == int.Parse(month) && x.IsSended)?.FirstOrDefault()?.Status
              ?? GoalStatus.NoWritte;
             Year = year;
             Month = month;
             Position = entity?.Position is null ? null : new PositionModel().MapFromEntity(entity.Position);
             MonthlyFinish = monthlyFinish;
-            IsGoalFinish = entity?.CreatedGoals?.Where(x => x.CreatedAt.Year == int.Parse(year) && x.IsDeleted == 0 && x.Status == GoalStatus.Approved)?.FirstOrDefault() != null ? true : false;
+            IsGoalFinish = entity?.CreatedGoals?.Where(x => x.CreatedAt.Year == int.Parse(year) && x.Status == GoalStatus.Approved)?.FirstOrDefault() != null ? true : false;
             return this;
         }
     }

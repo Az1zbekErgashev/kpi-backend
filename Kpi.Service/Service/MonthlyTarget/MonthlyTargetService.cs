@@ -179,7 +179,7 @@ namespace Kpi.Service.Service.MonthlyTarget
             if (existUserThisTeam == null) throw new KpiException(404, "user_not_found");
 
 
-            var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == dto.UserId && x.IsDeleted == 0 && x.Year == dto.Year && x.Month == dto.Month && x.Goal.Status == GoalStatus.Approved)
+            var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == dto.UserId && x.Year == dto.Year && x.Month == dto.Month && x.Goal.Status == GoalStatus.Approved)
                 .Include(x => x.MonthlyTargetComment)
                 .Include(x => x.MonthlyTargetValue)
                 .Include(x => x.Goal)
@@ -215,7 +215,7 @@ namespace Kpi.Service.Service.MonthlyTarget
                 throw new InvalidCredentialException("Invalid token claims.");
             }
 
-            var users = userRepository.GetAll(x => x.IsDeleted == 0 && x.Team.IsDeleted == 0 && x.Room.IsDeleted == 0)
+            var users = userRepository.GetAll()
                 .Include(x => x.CreatedGoals)
                 .ThenInclude(x => x.MonthlyPerformance)
                 .Include(x => x.Team)
@@ -288,7 +288,7 @@ namespace Kpi.Service.Service.MonthlyTarget
 
         public async ValueTask<PagedResult<MonthlyPerformanceListModel>> GetUsersForCEO([Required] MonthlyPerformanceForFilterDTO dto)
         {
-            var query = userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader && x.IsDeleted == 0 && x.Team.IsDeleted == 0 && x.Room.IsDeleted == 0)
+            var query = userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader)
                 .Include(x => x.CreatedGoals)
                 .ThenInclude(x => x.MonthlyPerformance)
                 .Include(x => x.Team)
@@ -365,7 +365,7 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             if (role != Role.TeamLeader) throw new KpiException(400, "inccorect_role");
 
-            var users = userRepository.GetAll(x => x.IsDeleted == 0 && x.Id == userId && x.TeamId == teamId && x.Team.IsDeleted == 0 && x.Room.IsDeleted == 0)
+            var users = userRepository.GetAll(x => x.Id == userId)
                 .Include(x => x.CreatedGoals)
                 .ThenInclude(x => x.MonthlyPerformance)
                 .Include(x => x.Team)
@@ -415,18 +415,16 @@ namespace Kpi.Service.Service.MonthlyTarget
             string filterYear = dto?.Year.ToString() ?? DateTime.UtcNow.Year.ToString();
 
             var teamWithAllUsersFilled = await teamRepository.GetAll(x =>
-                 x.Id == teamId && x.IsDeleted == 0 &&
+                 x.Id == teamId &&
                  x.Users
-                  .Where(user => user.IsDeleted == 0 && user.Role != Role.TeamLeader)
+                  .Where(user => user.Role != Role.TeamLeader)
                   .All(user =>
                       user.CreatedGoals.Any(goal =>
-                          goal.IsDeleted == 0 &&
                           goal.CreatedAt.Year == dto.Year &&
                           goal.MonthlyPerformance.Any(mp =>
                               mp.Month == dto.Month &&
                               mp.Year == dto.Year &&
                               mp.Status == GoalStatus.Approved &&
-                              mp.IsDeleted == 0 &&
                               mp.IsSended
                           )
                       )
@@ -452,7 +450,7 @@ namespace Kpi.Service.Service.MonthlyTarget
 
         public async ValueTask<bool> ChangeMonthlyTargetStatus(ChangeGoalStatusDTO dto)
         {
-            var existTargetValue = await monthlyPerformanceRepository.GetAsync(x => x.Id == dto.GoalId && x.IsDeleted == 0 && x.IsSended == true);
+            var existTargetValue = await monthlyPerformanceRepository.GetAsync(x => x.Id == dto.GoalId && x.IsSended == true);
 
             if (existTargetValue is null) throw new KpiException(400, "monthly_target_value_not_found");
 
@@ -487,8 +485,7 @@ namespace Kpi.Service.Service.MonthlyTarget
             }
 
             var model = await monthlyPerformanceRepository.GetAll(x =>
-            x.IsDeleted == 0
-            && x.Year == dto.Year
+             x.Year == dto.Year
             && x.Month == dto.Month
             && x.Goal.Status == GoalStatus.Approved
             && x.Goal.CreatedBy.TeamId == dto.TeamId
@@ -535,9 +532,8 @@ namespace Kpi.Service.Service.MonthlyTarget
 
 
             var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == userId
-            && x.IsDeleted == 0 
-            && x.Year == dto.Year 
-            && x.Month == dto.Month 
+            && x.Year == dto.Year
+            && x.Month == dto.Month
             && x.Goal.Status == GoalStatus.Approved)
 
                 .Include(x => x.MonthlyTargetComment)
@@ -560,8 +556,8 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             return new MonthlyPerformanceModel().MapFromEntity(model);
         }
-        
-        
+
+
         public async ValueTask<MonthlyPerformanceModel> GetMemberTarget(MonthlyPerformanceForFilterDTO dto)
         {
             var user = httpContextAccessor?.HttpContext?.User
@@ -580,9 +576,8 @@ namespace Kpi.Service.Service.MonthlyTarget
             if (existUserThisTeam == null) throw new KpiException(404, "teamId_or_userId_notcorrect");
 
             var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == userId
-            && x.IsDeleted == 0 
-            && x.Year == dto.Year 
-            && x.Month == dto.Month 
+            && x.Year == dto.Year
+            && x.Month == dto.Month
             && x.Goal.Status == GoalStatus.Approved)
 
                 .Include(x => x.MonthlyTargetComment)

@@ -1,6 +1,4 @@
-﻿using Kpi.Domain.Enum;
-
-namespace Kpi.Service.DTOs.Evaluation
+﻿namespace Kpi.Service.DTOs.Evaluation
 {
     public class DivisionEvaluationDto
     {

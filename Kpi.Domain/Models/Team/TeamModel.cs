@@ -16,8 +16,7 @@ namespace Kpi.Domain.Models.Team
             Name = entity.Name;
             Id = entity.Id;
             CreatedAt = entity.CreatedAt;
-            EmplyeesCount = entity.Users != null ? entity.Users.Where(x => x.IsDeleted == 0).Count() : 0;
-            IsDeleted = entity.IsDeleted;
+            EmplyeesCount = entity.Users != null ? entity.Users.Count() : 0;
             return this;
         }
     }
