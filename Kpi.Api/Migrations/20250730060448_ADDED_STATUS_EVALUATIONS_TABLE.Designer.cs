@@ -3,6 +3,7 @@ using System;
 using Kpi.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kpi.Api.Migrations
 {
     [DbContext(typeof(KpiDB))]
-    partial class KpiDBModelSnapshot : ModelSnapshot
+    [Migration("20250730060448_ADDED_STATUS_EVALUATIONS_TABLE")]
+    partial class ADDED_STATUS_EVALUATIONS_TABLE
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2481,11 +2484,11 @@ namespace Kpi.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 30, 6, 10, 33, 559, DateTimeKind.Utc).AddTicks(9434),
+                            CreatedAt = new DateTime(2025, 7, 30, 6, 4, 48, 455, DateTimeKind.Utc).AddTicks(4205),
                             FullName = "System Admin",
                             Password = "4224e31cf7876e3812095d34e1052b3a41174231789b1d4449842a72f005dc03",
                             Role = 0,
-                            UpdatedAt = new DateTime(2025, 7, 30, 6, 10, 33, 559, DateTimeKind.Utc).AddTicks(9436),
+                            UpdatedAt = new DateTime(2025, 7, 30, 6, 4, 48, 455, DateTimeKind.Utc).AddTicks(4206),
                             UserName = "CEO"
                         });
                 });
@@ -2533,13 +2536,13 @@ namespace Kpi.Api.Migrations
                     b.HasOne("Kpi.Domain.Entities.Goal.Division", "KpiDivision")
                         .WithMany()
                         .HasForeignKey("KpiDivisionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Kpi.Domain.Entities.ScoreManagement", "ScoreManagement")
                         .WithMany()
                         .HasForeignKey("ScoreManagementId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Kpi.Domain.Entities.User.User", "User")
                         .WithMany("Evaluations")

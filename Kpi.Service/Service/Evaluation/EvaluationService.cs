@@ -6,6 +6,7 @@ using Kpi.Service.Interfaces.Evaluation;
 using Kpi.Service.Interfaces.IRepositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using NPOI.HSSF.Record.Aggregates;
 using System.Security.Authentication;
 using System.Security.Claims;
 
@@ -84,7 +85,8 @@ namespace Kpi.Service.Service.Evaluation
                         Comment = dto.Comment,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
-                        ScoreManagementId = score?.Id
+                        ScoreManagementId = score?.Id,
+                        Status = GoalStatus.PendingReview
                     };
 
                     await _context.Evaluations.AddAsync(entity);
@@ -94,6 +96,7 @@ namespace Kpi.Service.Service.Evaluation
                     entity.Comment = dto.Comment;
                     entity.UpdatedAt = DateTime.UtcNow;
                     entity.ScoreManagementId = score?.Id;
+                    entity.Status = GoalStatus.PendingReview;
                 }
 
                 result.Add(MapToDto(entity, score?.Id));
@@ -289,7 +292,7 @@ namespace Kpi.Service.Service.Evaluation
 
             if (divisions is null) throw new KpiException(404, "goal_not_found");
 
-            var evaluations = await evaluationService.GetAll(x => x.Year == year)
+            var evaluations = await evaluationService.GetAll(x => x.Year == year && x.User.TeamId != null && x.User.RoomId != null)
                 .Include(x => x.User)
                 .ThenInclude(x => x.Position)
                 .Include(x => x.User)
@@ -371,7 +374,7 @@ namespace Kpi.Service.Service.Evaluation
               foreach (var complexScore in complexScores)
               {
                   var relatedDivisionIds = complexScore?.Divisions ?? new int[0];
-                  var complexKey = string.Join("_", relatedDivisionIds);
+                  var complexKey = string.Join(", ", relatedDivisionIds);
                   if (!addedComplexIds.Add(complexKey)) continue;
 
                   var relatedRatios = allDivisionNames
@@ -400,9 +403,11 @@ namespace Kpi.Service.Service.Evaluation
 
                   var newGrade = gradeForManyDivisions.FirstOrDefault(e => weighted >= e.MinScore && weighted <= e.MaxScore);
 
+                  var divisionName = string.Join(", ", relatedRatios.Select(x => $"{x.Name} ({x.Ratio})"));
+
                   divisionResults.Add(new
                   {
-                      divisionId = $"group_{complexKey}",
+                      divisionId = divisionName,
                       average = Math.Round(avgScore, 2),
                       adjusted = adjusted,
                       weighted = Math.Round((decimal)weighted, 2),
@@ -532,6 +537,7 @@ namespace Kpi.Service.Service.Evaluation
                     var weightedScore = adjusted * (div.Ratio / 100.0);
                     totalFinalScore += (double)weightedScore;
 
+
                     divisionResults.Add(new
                     {
                         divisionId = div.Id,
@@ -566,6 +572,8 @@ namespace Kpi.Service.Service.Evaluation
                     double adjusted = Math.Round(avgScore);
                     double weighted = adjusted * (percentSum / 100.0);
 
+                    var divisionName = string.Join(", ", relatedRatios.Select(x => $"{x.Name} ({x.Ratio})"));
+
                     var allDivisionIds = allDivisionNames.Select(d => d.Id).ToHashSet();
 
                     var gradeForManyDivisions = complexScores
@@ -576,7 +584,7 @@ namespace Kpi.Service.Service.Evaluation
 
                     divisionResults.Add(new
                     {
-                        divisionId = $"group_{complexKey}",
+                        divisionId = divisionName,
                         average = Math.Round(avgScore, 2),
                         adjusted = adjusted,
                         weighted = Math.Round((decimal)weighted, 2),
@@ -642,7 +650,7 @@ namespace Kpi.Service.Service.Evaluation
 
             if (divisions is null) throw new KpiException(404, "goal_not_found");
 
-            var evaluations = await evaluationService.GetAll(x => x.Year == year)
+            var evaluations = await evaluationService.GetAll(x => x.Year == year && x.User.TeamId != null && x.User.RoomId != null && x.Status == GoalStatus.Approved)
                 .Include(x => x.User)
                 .ThenInclude(x => x.Position)
                 .Include(x => x.User)
@@ -750,9 +758,11 @@ namespace Kpi.Service.Service.Evaluation
 
                     var newGrade = gradeForManyDivisions.FirstOrDefault(e => weighted >= e.MinScore && weighted<= e.MaxScore);
 
+                    var divisionName = string.Join(", ", relatedRatios.Select(x => $"{x.Name} ({x.Ratio})"));
+
                     divisionResults.Add(new
                     {
-                        divisionId = $"group_{complexKey}",
+                        divisionId = divisionName,
                         average = Math.Round(avgScore, 2),
                         adjusted = adjusted,
                         weighted = Math.Round((decimal)weighted, 2),

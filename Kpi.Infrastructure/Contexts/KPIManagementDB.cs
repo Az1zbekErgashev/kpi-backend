@@ -75,13 +75,13 @@ namespace Kpi.Infrastructure.Contexts
                 .HasOne(e => e.ScoreManagement)
                 .WithMany()
                 .HasForeignKey(e => e.ScoreManagementId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Evaluation>()
                 .HasOne(e => e.KpiDivision)
                 .WithMany()
                 .HasForeignKey(e => e.KpiDivisionId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ScoreManagement>()
                 .HasOne(t => t.Division)
@@ -123,7 +123,7 @@ namespace Kpi.Infrastructure.Contexts
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(e => e.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict); // Не удаляем пользователя при наличии комментариев
+                .OnDelete(DeleteBehavior.Cascade); // Не удаляем пользователя при наличии комментариев
 
             modelBuilder.Entity<Division>()
                 .HasMany(d => d.Goals)

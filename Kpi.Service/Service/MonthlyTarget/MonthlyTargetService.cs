@@ -21,6 +21,7 @@ namespace Kpi.Service.Service.MonthlyTarget
         private readonly IGenericRepository<Domain.Entities.Goal.Goal> goalRepository;
         private readonly IGenericRepository<Domain.Entities.User.User> userRepository;
         private readonly IGenericRepository<Domain.Entities.Goal.TargetValue> targetValueRepository;
+        private readonly IGenericRepository<Domain.Entities.Evaluation> evaluationsRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly IGenericRepository<Domain.Entities.Team.Team> teamRepository;
         private readonly IGenericRepository<Domain.Entities.Comment.MonthlyTargetComment> monthlyTargetCommentRepository;
@@ -32,7 +33,8 @@ namespace Kpi.Service.Service.MonthlyTarget
             IGenericRepository<Domain.Entities.Comment.MonthlyTargetComment> monthlyTargetCommentRepository,
             IGenericRepository<Domain.Entities.Goal.TargetValue> targetValueRepository,
             IGenericRepository<Domain.Entities.User.User> userRepository,
-            IGenericRepository<Domain.Entities.Team.Team> teamRepository)
+            IGenericRepository<Domain.Entities.Team.Team> teamRepository,
+            IGenericRepository<Domain.Entities.Evaluation> evaluationsRepository)
         {
             this.monthlyPerformanceRepository = monthlyPerformanceRepository;
             this.goalRepository = goalRepository;
@@ -42,6 +44,7 @@ namespace Kpi.Service.Service.MonthlyTarget
             this.targetValueRepository = targetValueRepository;
             this.userRepository = userRepository;
             this.teamRepository = teamRepository;
+            this.evaluationsRepository = evaluationsRepository;
         }
 
         public async ValueTask<bool> CreateAsync(CreateMonthlyTargetGroupDto dto)
@@ -288,7 +291,7 @@ namespace Kpi.Service.Service.MonthlyTarget
 
         public async ValueTask<PagedResult<MonthlyPerformanceListModel>> GetUsersForCEO([Required] MonthlyPerformanceForFilterDTO dto)
         {
-            var query = userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader)
+            var query = userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader && x.TeamId != null && x.RoomId != null)
                 .Include(x => x.CreatedGoals)
                 .ThenInclude(x => x.MonthlyPerformance)
                 .Include(x => x.Team)
@@ -450,9 +453,19 @@ namespace Kpi.Service.Service.MonthlyTarget
 
         public async ValueTask<bool> ChangeMonthlyTargetStatus(ChangeGoalStatusDTO dto)
         {
-            var existTargetValue = await monthlyPerformanceRepository.GetAsync(x => x.Id == dto.GoalId && x.IsSended == true);
+            var user = httpContextAccessor?.HttpContext?.User
+            ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var existTargetValue = await monthlyPerformanceRepository.GetAll(x => x.Id == dto.GoalId && x.IsSended == true).Include(x => x.Goal).ThenInclude(x => x.CreatedBy).FirstOrDefaultAsync();
 
             if (existTargetValue is null) throw new KpiException(400, "monthly_target_value_not_found");
+
 
             existTargetValue.Status = dto.Status ? GoalStatus.Approved : GoalStatus.Returned;
 
@@ -466,6 +479,19 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             await monthlyTargetCommentRepository.CreateAsync(newComment);
             await monthlyTargetCommentRepository.SaveChangesAsync();
+
+            if (role == Role.Ceo)
+            {
+                var allEvaluations = await evaluationsRepository.GetAll(x => x.Month == existTargetValue.Month && x.Year == existTargetValue.Year && x.User.TeamId == existTargetValue.Goal.CreatedBy.TeamId).ToListAsync();
+                foreach (var item in allEvaluations)
+                {
+                    item.Status = dto.Status ? Domain.Enum.GoalStatus.Approved : Domain.Enum.GoalStatus.Returned;
+                    evaluationsRepository.UpdateAsync(item);
+                    await evaluationsRepository.SaveChangesAsync();
+                }
+            }
+
+
 
             monthlyPerformanceRepository.UpdateAsync(existTargetValue);
             await monthlyPerformanceRepository.SaveChangesAsync();
@@ -577,7 +603,7 @@ namespace Kpi.Service.Service.MonthlyTarget
 
             var model = await monthlyPerformanceRepository.GetAll(x => x.Goal.CreatedById == userId
             && x.Year == dto.Year
-            && x.Month == dto.Month
+            && x.Month == dto.Month 
             && x.Goal.Status == GoalStatus.Approved)
 
                 .Include(x => x.MonthlyTargetComment)

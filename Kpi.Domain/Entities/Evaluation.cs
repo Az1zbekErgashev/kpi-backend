@@ -1,4 +1,5 @@
 ﻿using Kpi.Domain.Commons;
+using Kpi.Domain.Enum;
 namespace Kpi.Domain.Entities
 {
     public class Evaluation : Auditable
@@ -12,5 +13,6 @@ namespace Kpi.Domain.Entities
         public Goal.Division KpiDivision { get; set; }
         public int? ScoreManagementId { get; set; }
         public ScoreManagement? ScoreManagement { get; set; }
+        public GoalStatus Status { get; set; }
     }
 }

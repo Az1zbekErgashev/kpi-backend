@@ -19,13 +19,15 @@ namespace Kpi.Service.Service.User
         private readonly IGenericRepository<Domain.Entities.User.User> _userRepository;
         private readonly IGenericRepository<Domain.Entities.User.Position> _positionRepository;
         private readonly IGenericRepository<Domain.Entities.Team.Team> _teamRepository;
+        private readonly IGenericRepository<Domain.Entities.Goal.Goal> _goalRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
-        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository, IGenericRepository<Domain.Entities.Team.Team> teamRepository)
+        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository, IGenericRepository<Domain.Entities.Team.Team> teamRepository, IGenericRepository<Domain.Entities.Goal.Goal> goalRepository)
         {
             _userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
             _positionRepository = positionRepository;
             _teamRepository = teamRepository;
+            _goalRepository = goalRepository;
         }
         public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)
         {
@@ -64,7 +66,7 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<UserModel> UpdateAsync(UserForUpdateDTO @dto)
         {
-            var existUser = await _userRepository.GetAsync(x => x.Id == dto.Id);
+            var existUser = await _userRepository.GetAll(x => x.Id == dto.Id).Include(x => x.CreatedGoals).ThenInclude(x => x.MonthlyPerformance).FirstOrDefaultAsync();
 
             var existuserName = await _userRepository.GetAsync(x => x.UserName == dto.UserName && x.Id != dto.Id);
 
@@ -88,10 +90,21 @@ namespace Kpi.Service.Service.User
             existUser.Role = dto.Role;
             existUser.FullName = dto.FullName;
             existUser.UserName = dto.UserName;
-            existUser.TeamId = dto.TeamId;
             existUser.UpdatedAt = DateTime.UtcNow;
             existUser.RoomId = dto.RoomId;
             existUser.PositionId = dto.PositionId;
+
+            if(existUser.TeamId != dto.TeamId)
+            {
+                foreach (var item in existUser.CreatedGoals)
+                {
+                    await _goalRepository.DeleteAsync(item.Id);
+                }
+
+                await _goalRepository.SaveChangesAsync();
+                existUser.TeamId = dto.TeamId;
+            }
+
 
             _userRepository.UpdateAsync(existUser);
             await _userRepository.SaveChangesAsync();
@@ -212,7 +225,7 @@ namespace Kpi.Service.Service.User
 
         public async ValueTask<PagedResult<UserModelForCEO>> GetUsersForCEO(UserForFilterCEOSideDTO dto)
         {
-            var query = _userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader)
+            var query = _userRepository.GetAll(x => x.Id != 1 && x.Role == Domain.Enum.Role.TeamLeader && x.TeamId != null && x.RoomId != null)
                 .Include(x => x.CreatedGoals)
                 .Include(x => x.Team)
                 .Include(x => x.Evaluations)
@@ -304,7 +317,7 @@ namespace Kpi.Service.Service.User
                 !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
                 !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
             {
-                throw new InvalidCredentialException("Invalid token claims.");
+                throw new KpiException(400, "please_check_your_team");
             }
 
             var users = _userRepository.GetAll()
@@ -387,7 +400,7 @@ namespace Kpi.Service.Service.User
                 !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamId) ||
                 !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
             {
-                throw new InvalidCredentialException("Invalid token claims.");
+                throw new KpiException(400, "please_check_your_team");
             }
 
             if (role != Role.TeamLeader) throw new KpiException(400, "inccorect_role");

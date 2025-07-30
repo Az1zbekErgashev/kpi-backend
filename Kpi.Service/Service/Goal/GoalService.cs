@@ -110,7 +110,7 @@ namespace Kpi.Service.Service.Goal
             }
             await _kpiGoalRepository.SaveChangesAsync();
 
-            for (int i = 0; i <= 11; i++)
+            for (int i = 1; i <= 12; i++)
             {
                 var monthlyPerformance = new MonthlyPerformance
                 {
