@@ -1,4 +1,6 @@
-﻿using Kpi.Domain.Enum;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using Kpi.Domain.Entities;
+using Kpi.Domain.Enum;
 using Kpi.Infrastructure.Contexts;
 using Kpi.Service.DTOs.Evaluation;
 using Kpi.Service.Exception;
@@ -842,7 +844,7 @@ namespace Kpi.Service.Service.Evaluation
                 .Select(g => new
                 {
                     divisionId = g.DivisionId,
-                    divisionName = g?.Division?.Name + " " + g?.Division?.Ratio,
+                    divisionName = GetDivisionName(g, year),
                     grade = g.Grade,
                     maxScore = g.MaxScore,
                     minScore = g.MinScore,
@@ -856,6 +858,38 @@ namespace Kpi.Service.Service.Evaluation
                 .ToList();
 
             return divisionGradeStats;
+        }
+
+        private async ValueTask<string> GetDivisionName(ScoreManagement entity, int year)
+        {
+            if (entity.IsMoreDivisions)
+            {
+                var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo)
+                .Include(x => x.Divisions)
+                .FirstOrDefaultAsync();
+
+                var allDivisionNames = divisions.Divisions
+                      .Where(d => !string.IsNullOrWhiteSpace(d.Name))
+                      .Select(d => new
+                      {
+                          Name = d.Name,
+                          Ratio = d.Ratio,
+                          Id = d.Id,
+                      })
+                      .ToList();
+
+                var relatedRatios = allDivisionNames
+                    .Where(d => entity.Divisions.Contains(d.Id))
+                    .ToList();
+
+                var divisionName = string.Join(", ", relatedRatios.Select(x => $"{x.Name} ({x.Ratio})"));
+                return divisionName;
+            }
+            else if (entity.IsFinalScore)
+            {
+                return "Final Result (100%)";
+            }
+            else return $"{entity.Division.Name + " " + entity.Division.Ratio}";
         }
 
         public async ValueTask<List<object>> GetDivisionName(int year)
