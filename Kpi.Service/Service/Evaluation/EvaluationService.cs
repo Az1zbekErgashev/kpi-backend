@@ -840,26 +840,13 @@ namespace Kpi.Service.Service.Evaluation
                 .Include(x => x.Division)
                 .ToListAsync();
 
-            var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo)
-                .Include(x => x.Divisions)
-                .FirstOrDefaultAsync();
-
-            var allDivisionNames = divisions?.Divisions
-                  .Where(d => !string.IsNullOrWhiteSpace(d.Name))
-                  .Select(d => new DivisionInfo
-                  {
-                      Name = d.Name,
-                      Ratio = d.Ratio,
-                      Id = d.Id,
-                  })
-                  .ToList();
-
-
-            var divisionGradeStats = evaluations
-                .Select(async g => new
+            var tasks = evaluations.Select(async g =>
+            {
+                var divisionName = await GetDivisionName(g, year);
+                return new
                 {
                     divisionId = g.DivisionId,
-                    divisionName = await GetDivisionName(g, year, allDivisionNames),
+                    divisionName = divisionName,
                     grade = g.Grade,
                     maxScore = g.MaxScore,
                     minScore = g.MinScore,
@@ -867,20 +854,33 @@ namespace Kpi.Service.Service.Evaluation
                     divisions = g.Divisions,
                     isFinalScore = g.IsFinalScore,
                     isMoreDivisions = g.IsMoreDivisions
+                } as object;
+            });
 
-                })
-                .Cast<object>()
-                .ToList();
-
-            return divisionGradeStats;
+            var divisionGradeStats = await Task.WhenAll(tasks);
+            return divisionGradeStats.ToList();
         }
 
-        private async ValueTask<string> GetDivisionName(ScoreManagement entity, int year, List<DivisionInfo>? allDivisionNames)
+        private async ValueTask<string> GetDivisionName(ScoreManagement entity, int year)
         {
             if (entity.IsMoreDivisions)
             {
+                var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo)
+                .Include(x => x.Divisions)
+                .FirstOrDefaultAsync();
+
+                var allDivisionNames = divisions.Divisions
+                      .Where(d => !string.IsNullOrWhiteSpace(d.Name))
+                      .Select(d => new
+                      {
+                          Name = d.Name,
+                          Ratio = d.Ratio,
+                          Id = d.Id,
+                      })
+                      .ToList();
+
                 var relatedRatios = allDivisionNames
-                    ?.Where(d => entity.Divisions.Contains(d.Id))
+                    .Where(d => entity.Divisions.Contains(d.Id))
                     .ToList();
 
                 var divisionName = string.Join(", ", relatedRatios.Select(x => $"{x.Name} ({x.Ratio})"));
@@ -891,13 +891,6 @@ namespace Kpi.Service.Service.Evaluation
                 return "Final Result (100%)";
             }
             else return $"{entity.Division.Name + " " + entity.Division.Ratio}";
-        }
-
-        public class DivisionInfo
-        {
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public double? Ratio { get; set; }
         }
 
         public async ValueTask<List<object>> GetDivisionName(int year)
