@@ -610,23 +610,29 @@ namespace Kpi.Service.Service.User
                 string roomName = GetCellValue(currentRow, "ROOM");
                 string positionName = GetCellValue(currentRow, "Position");
 
-                if (string.IsNullOrWhiteSpace(teamName) || string.IsNullOrWhiteSpace(roomName) || string.IsNullOrWhiteSpace(positionName))
-                    continue;
 
-                var team = await _teamRepository.CreateAsync(new Domain.Entities.Team.Team { Name = teamName });
-                await _teamRepository.SaveChangesAsync();
+                Domain.Entities.Team.Team team = null;
 
-                var room = await _roomRepository.CreateAsync(new Domain.Entities.Room.Room { Name = roomName });
-                await _roomRepository.SaveChangesAsync();
+                if (!string.IsNullOrWhiteSpace(teamName))
+                {
+                   team = await _teamRepository.CreateAsync(new Domain.Entities.Team.Team { Name = teamName });
+                   await _teamRepository.SaveChangesAsync();
+                }
+
+
+                Domain.Entities.Room.Room room = null;
+                if (!string.IsNullOrWhiteSpace(roomName))
+                {
+                  room = await _roomRepository.CreateAsync(new Domain.Entities.Room.Room { Name = roomName });
+                  await _roomRepository.SaveChangesAsync();
+                }
 
                 var position = positions.FirstOrDefault(p => p.Name.Trim().ToLower() == positionName.Trim().ToLower());
-                if (position == null)
-                    throw new KpiException(400, $"position_not_found: {positionName}");
 
                 var user = new Domain.Entities.User.User
                 {
-                    TeamId = team.Id,
-                    RoomId = room.Id,
+                    TeamId = team?.Id,
+                    RoomId = room?.Id,
                     PositionId = position.Id,
                     Password = GetCellValue(currentRow, "Password").Encrypt(),
                     FullName = GetCellValue(currentRow, "User name"),
