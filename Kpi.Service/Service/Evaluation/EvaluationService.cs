@@ -857,7 +857,7 @@ namespace Kpi.Service.Service.Evaluation
                 .ToList() ?? new List<DivisionInfo>();
 
             // 3. Без асинхронности внутри Select
-            var result = evaluations.Select(g =>
+            var result = evaluations.OrderBy(x => x.Id).Select(g =>
             {
                 var divisionName = GetDivisionName(g, allDivisionNames);
                 return new
