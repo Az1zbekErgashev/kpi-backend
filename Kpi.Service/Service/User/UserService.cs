@@ -613,18 +613,30 @@ namespace Kpi.Service.Service.User
 
                 Domain.Entities.Team.Team team = null;
 
-                if (!string.IsNullOrWhiteSpace(teamName))
-                {
-                   team = await _teamRepository.CreateAsync(new Domain.Entities.Team.Team { Name = teamName });
-                   await _teamRepository.SaveChangesAsync();
+                if (!string.IsNullOrWhiteSpace(teamName)) {
+                    var exisTeam = await _teamRepository.GetAsync(x => x.Name == teamName);
+                    if(exisTeam is null)
+                    {
+                        team = await _teamRepository.CreateAsync(new Domain.Entities.Team.Team { Name = teamName });
+                        await _teamRepository.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        team = exisTeam;
+                    }
                 }
 
 
                 Domain.Entities.Room.Room room = null;
                 if (!string.IsNullOrWhiteSpace(roomName))
                 {
-                  room = await _roomRepository.CreateAsync(new Domain.Entities.Room.Room { Name = roomName });
-                  await _roomRepository.SaveChangesAsync();
+                    var existRoom = await _roomRepository.GetAsync(x => x.Name == teamName);
+                    if (existRoom is null)
+                    {
+                        room = await _roomRepository.CreateAsync(new Domain.Entities.Room.Room { Name = roomName });
+                        await _roomRepository.SaveChangesAsync();
+                    }
+                    else room = existRoom;
                 }
 
                 var position = positions.FirstOrDefault(p => p.Name.Trim().ToLower() == positionName.Trim().ToLower());
