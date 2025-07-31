@@ -8,9 +8,12 @@ using Kpi.Service.Interfaces.User;
 using Kpi.Service.StringExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Authentication;
 using System.Security.Claims;
+using System.Text;
 
 namespace Kpi.Service.Service.User
 {
@@ -19,15 +22,17 @@ namespace Kpi.Service.Service.User
         private readonly IGenericRepository<Domain.Entities.User.User> _userRepository;
         private readonly IGenericRepository<Domain.Entities.User.Position> _positionRepository;
         private readonly IGenericRepository<Domain.Entities.Team.Team> _teamRepository;
+        private readonly IGenericRepository<Domain.Entities.Room.Room> _roomRepository;
         private readonly IGenericRepository<Domain.Entities.Goal.Goal> _goalRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
-        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository, IGenericRepository<Domain.Entities.Team.Team> teamRepository, IGenericRepository<Domain.Entities.Goal.Goal> goalRepository)
+        public UserService(IGenericRepository<Domain.Entities.User.User> userRepository, IHttpContextAccessor httpContextAccessor, IGenericRepository<Domain.Entities.User.Position> positionRepository, IGenericRepository<Domain.Entities.Team.Team> teamRepository, IGenericRepository<Domain.Entities.Goal.Goal> goalRepository, IGenericRepository<Domain.Entities.Room.Room> roomRepository)
         {
             _userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
             _positionRepository = positionRepository;
             _teamRepository = teamRepository;
             _goalRepository = goalRepository;
+            _roomRepository = roomRepository;
         }
         public async ValueTask<UserModel> CreateAsync(UserForCreateDTO @dto)
         {
@@ -500,6 +505,141 @@ namespace Kpi.Service.Service.User
             var model = _userRepository.UpdateAsync(existUser);
             await _userRepository.SaveChangesAsync();
             return new UserModel().MapFromEntity(model);
+        }
+
+        public async ValueTask<bool> UploadExcelFileAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                throw new KpiException(400, "please_upload_file");
+
+            using var stream = file.OpenReadStream();
+            IWorkbook workbook = new XSSFWorkbook(stream);
+            ISheet sheet = workbook.GetSheetAt(0);
+            int rowCount = sheet.LastRowNum;
+
+            var dataFormatter = new DataFormatter();
+            var columnIndexes = new Dictionary<string, int>();
+            var columnMapping = new Dictionary<string, string>
+            {
+                { "id", "ID" },
+                { "password", "Password" },
+                { "user name", "User name" },
+                { "room", "ROOM" },
+                { "team", "Team" },
+                { "role", "Role" },
+                { "position", "Position" },
+            };
+
+            string Clean(string input)
+            {
+                if (string.IsNullOrEmpty(input)) return string.Empty;
+
+                return new string(input
+                    .Where(c => !char.IsControl(c))
+                    .ToArray())
+                    .Replace("\u00A0", "")
+                    .Replace("\u200B", "")
+                    .Replace("\uFEFF", "")
+                    .ToLowerInvariant()
+                    .Trim();
+            }
+
+            int startRow = -1;
+            for (int i = 0; i < 10; i++)
+            {
+                IRow row = sheet.GetRow(i);
+                if (row == null) continue;
+
+                for (int j = 0; j < row.LastCellNum; j++)
+                {
+                    string value = Clean(dataFormatter.FormatCellValue(row.GetCell(j)));
+                    if (value.Contains("id"))
+                    {
+                        startRow = i + 1;
+                        for (int col = 0; col < row.LastCellNum; col++)
+                        {
+                            string headerText = Clean(dataFormatter.FormatCellValue(row.GetCell(col)));
+                            if (columnMapping.ContainsKey(headerText))
+                            {
+                                columnIndexes[columnMapping[headerText]] = col;
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                if (startRow != -1)
+                    break;
+            }
+
+            if (startRow == -1)
+                throw new KpiException(400, "format_not_found");
+
+            string GetCellValue(IRow row, string columnKey)
+            {
+                if (!columnIndexes.TryGetValue(columnKey, out int colIndex))
+                    return string.Empty;
+
+                return dataFormatter.FormatCellValue(row.GetCell(colIndex)).Trim();
+            }
+
+            var users = await _userRepository.GetAll().ToListAsync();
+            var teams = await _teamRepository.GetAll().ToListAsync();
+            var rooms = await _roomRepository.GetAll().ToListAsync();
+
+            foreach (var user in users)
+                await _userRepository.DeleteAsync(user.Id);
+            await _userRepository.SaveChangesAsync();
+
+            foreach (var room in rooms)
+                await _roomRepository.DeleteAsync(room.Id);
+            await _roomRepository.SaveChangesAsync();
+
+            foreach (var team in teams)
+                await _teamRepository.DeleteAsync(team.Id);
+            await _teamRepository.SaveChangesAsync();
+
+            var positions = await _positionRepository.GetAll().ToListAsync();
+
+            for (int row = startRow; row <= rowCount; row++)
+            {
+                var currentRow = sheet.GetRow(row);
+                if (currentRow == null) continue;
+
+                string teamName = GetCellValue(currentRow, "Team");
+                string roomName = GetCellValue(currentRow, "ROOM");
+                string positionName = GetCellValue(currentRow, "Position");
+
+                if (string.IsNullOrWhiteSpace(teamName) || string.IsNullOrWhiteSpace(roomName) || string.IsNullOrWhiteSpace(positionName))
+                    continue;
+
+                var team = await _teamRepository.CreateAsync(new Domain.Entities.Team.Team { Name = teamName });
+                await _teamRepository.SaveChangesAsync();
+
+                var room = await _roomRepository.CreateAsync(new Domain.Entities.Room.Room { Name = roomName });
+                await _roomRepository.SaveChangesAsync();
+
+                var position = positions.FirstOrDefault(p => p.Name.Trim().ToLower() == positionName.Trim().ToLower());
+                if (position == null)
+                    throw new KpiException(400, $"position_not_found: {positionName}");
+
+                var user = new Domain.Entities.User.User
+                {
+                    TeamId = team.Id,
+                    RoomId = room.Id,
+                    PositionId = position.Id,
+                    Password = GetCellValue(currentRow, "Password").Encrypt(),
+                    FullName = GetCellValue(currentRow, "User name"),
+                    CreatedAt = DateTime.UtcNow,
+                    Role = Enum.Parse<Role>(GetCellValue(currentRow, "Role"), ignoreCase: true),
+                    UserName = GetCellValue(currentRow, "ID")
+                };
+
+                await _userRepository.CreateAsync(user);
+            }
+
+            await _userRepository.SaveChangesAsync();
+            return true;
         }
     }
 }

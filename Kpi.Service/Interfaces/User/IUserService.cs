@@ -1,6 +1,7 @@
 ﻿using Kpi.Domain.Models.PagedResult;
 using Kpi.Domain.Models.User;
 using Kpi.Service.DTOs.User;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace Kpi.Service.Interfaces.User
@@ -18,5 +19,6 @@ namespace Kpi.Service.Interfaces.User
         ValueTask<PagedResult<UserModelForCEO>> GetUserListWithGoal(UserForFilterCEOSideDTO dto);
         ValueTask<PagedResult<UserModelForCEO>> GetTeamLeader(UserForFilterCEOSideDTO dto);
         ValueTask<UserModel> UpdateAsync(UserForUpdateByTokenDTO dto);
+        ValueTask<bool> UploadExcelFileAsync(IFormFile file);
     }
 }

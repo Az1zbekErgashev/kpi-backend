@@ -81,5 +81,9 @@ namespace Kpi.Api.Controllers.User
         [ProducesResponseType(typeof(ResponseModel<UserModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> UpdateAsync(UserForUpdateByTokenDTO @dto) => ResponseHandler.ReturnIActionResponse(await _userRepository.UpdateAsync(@dto));
+
+        [HttpPost]
+        public async ValueTask<IActionResult> UploadExcelFile(IFormFile file) => ResponseHandler.ReturnIActionResponse(await _userRepository.UploadExcelFileAsync(file));
+
     }
 }
