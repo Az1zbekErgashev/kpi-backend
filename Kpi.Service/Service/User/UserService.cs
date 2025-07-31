@@ -630,7 +630,7 @@ namespace Kpi.Service.Service.User
                 Domain.Entities.Room.Room room = null;
                 if (!string.IsNullOrWhiteSpace(roomName))
                 {
-                    var existRoom = await _roomRepository.GetAsync(x => x.Name == teamName);
+                    var existRoom = await _roomRepository.GetAsync(x => x.Name == roomName);
                     if (existRoom is null)
                     {
                         room = await _roomRepository.CreateAsync(new Domain.Entities.Room.Room { Name = roomName });
