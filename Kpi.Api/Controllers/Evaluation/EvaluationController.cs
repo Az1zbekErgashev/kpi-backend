@@ -19,6 +19,9 @@ namespace Kpi.Api.Controllers.Evaluation
 
         [HttpGet]
         public async ValueTask<IActionResult> GetAsync([FromQuery] EvaluationsForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetTeamEvaluationsAsync(dto));
+        
+        [HttpGet("team-leader")]
+        public async ValueTask<IActionResult> GetTeamLeaderEvaluationsAsync([FromQuery] EvaluationsForFilterDTO dto) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetTeamLeaderEvaluationsAsync(dto));
 
         [HttpGet("member")]
         [Authorize(Roles = "TeamLeader")]
@@ -45,6 +48,13 @@ namespace Kpi.Api.Controllers.Evaluation
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
         public async ValueTask<IActionResult> GetAllEvaluationByYear(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetAllEvaluationByYear(year));
+        
+        
+        [HttpGet("all-evaluation-by-year-team")]
+        [Authorize(Roles = "Ceo,Director")]
+        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetAllEvaluationByYearForTeam(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetAllEvaluationByYearForTeam(year));
 
 
         [HttpGet("all-score")]
