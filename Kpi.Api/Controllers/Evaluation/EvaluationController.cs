@@ -54,7 +54,12 @@ namespace Kpi.Api.Controllers.Evaluation
         [Authorize(Roles = "Ceo,Director")]
         [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
-        public async ValueTask<IActionResult> GetAllEvaluationByYearForTeam(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetAllEvaluationByYearForTeam(year));
+        public async ValueTask<IActionResult> GetAllEvaluationByYearForTeam(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetAllEvaluationByYearForTeam(year));        
+        
+        [HttpGet("evaluation-by-year-team")]
+        [ProducesResponseType(typeof(ResponseModel<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseModel<>), StatusCodes.Status400BadRequest)]
+        public async ValueTask<IActionResult> GetEvaluationByYearForTeam(int year) => ResponseHandler.ReturnIActionResponse(await evaluationService.GetEvaluationByYearForTeam(year));
 
 
         [HttpGet("all-score")]

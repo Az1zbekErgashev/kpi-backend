@@ -8,7 +8,6 @@ using Kpi.Service.Interfaces.Evaluation;
 using Kpi.Service.Interfaces.IRepositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using NPOI.HSSF.Record.Aggregates;
 using System.Security.Authentication;
 using System.Security.Claims;
 
@@ -213,14 +212,10 @@ namespace Kpi.Service.Service.Evaluation
             var teamId = dto.TeamId ?? teamIdByToken;
 
             var goalWithDivisions = await goalService.GetAll(x =>
-                x.CreatedAt.Year == dto.Year &&
-                x.CreatedBy.TeamId == teamId &&
-                x.CreatedById == userId &&
-                x.CreatedBy.Role == Role.TeamLeader)
-                .Include(x => x.Divisions)
-                .ThenInclude(x => x.Goals)
-                .ThenInclude(x => x.TargetValue)
-                .FirstOrDefaultAsync();
+               x.CreatedAt.Year == dto.Year &&
+               x.CreatedBy.Role == Role.Ceo)
+               .Include(x => x.Divisions)
+               .FirstOrDefaultAsync();
 
             if (goalWithDivisions == null)
                 throw new KpiException(404, "Goal with divisions not found.");
@@ -250,7 +245,7 @@ namespace Kpi.Service.Service.Evaluation
                     ?.Where(e => e.UserId == emp.Id)
                     ?.ToList();
 
-                var divisionEvaluations = allDivisions?.Where(x => x.Goals?.Any(g => g.TargetValue?.Type == TargetValueType.LeaderEvaluation) ?? false).Select(division =>
+                var divisionEvaluations = allDivisions?.Select(division =>
                 {
                     var eval = employeeEvals?.FirstOrDefault(e => e.KpiDivisionId == division.Id);
 
@@ -374,7 +369,7 @@ namespace Kpi.Service.Service.Evaluation
 
             if (divisions is null) throw new KpiException(404, "goal_not_found");
 
-            var evaluations = await evaluationService.GetAll(x => x.Year == year && x.User.TeamId != null && x.User.RoomId != null)
+            var evaluations = await evaluationService.GetAll(x => x.Year == year && x.User.TeamId != null && x.User.RoomId != null && x.User.Role != Role.TeamLeader)
                 .Include(x => x.User)
                 .ThenInclude(x => x.Position)
                 .Include(x => x.User)
@@ -553,7 +548,7 @@ namespace Kpi.Service.Service.Evaluation
 
             if (divisions is null) throw new KpiException(404, "goal_not_found");
 
-            var evaluations = await evaluationService.GetAll(x => x.Year == year && x.User.TeamId == teamId)
+            var evaluations = await evaluationService.GetAll(x => x.Year == year && x.User.TeamId == teamId && x.User.Role != Role.TeamLeader)
                 .Include(x => x.User)
                 .ThenInclude(x => x.Position)
                 .Include(x => x.User)
@@ -732,7 +727,7 @@ namespace Kpi.Service.Service.Evaluation
 
             if (divisions is null) throw new KpiException(404, "goal_not_found");
 
-            var evaluations = await evaluationService.GetAll(x => x.Year == year && x.User.TeamId != null && x.User.RoomId != null && x.Status == GoalStatus.Approved)
+            var evaluations = await evaluationService.GetAll(x => x.Year == year && x.User.TeamId != null && x.User.RoomId != null && x.Status == GoalStatus.Approved && x.User.Role != Role.TeamLeader)
                 .Include(x => x.User)
                 .ThenInclude(x => x.Position)
                 .Include(x => x.User)
@@ -961,6 +956,208 @@ namespace Kpi.Service.Service.Evaluation
                 foreach (var div in allDivisionNames)
                 {
 
+                    var scoresByMonth = Enumerable.Range(1, 12)
+                     .Select(month =>
+                         group.FirstOrDefault(e =>
+                             e.KpiDivisionId == div.Id &&
+                             e.Month == month)?.ScoreManagement?.MinScore)
+                     .Where(score => score.HasValue)
+                     .Select(score => score.Value)
+                     .ToList();
+
+                    var monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+
+                    var adjusted = Math.Round(monthlyAvg); // 환산 값
+                    var weightedScore = adjusted * (div.Ratio / 100.0);
+                    totalFinalScore += (double)weightedScore;
+
+                    divisionResults.Add(new
+                    {
+                        divisionId = div.Id,
+                        average = Math.Round(monthlyAvg, 2),
+                        adjusted = adjusted,
+                        weighted = Math.Round((decimal)weightedScore, 2)
+                    });
+                }
+
+                var addedComplexIds = new HashSet<string>();
+                foreach (var complexScore in complexScores)
+                {
+                    var relatedDivisionIds = complexScore?.Divisions ?? new int[0];
+                    var complexKey = string.Join("_", relatedDivisionIds);
+                    if (!addedComplexIds.Add(complexKey)) continue;
+
+                    var relatedRatios = allDivisionNames
+                        .Where(d => relatedDivisionIds.Contains(d.Id))
+                        .ToList();
+
+                    double percentSum = (double)relatedRatios.Sum(r => r.Ratio);
+
+                    var relatedScores = relatedRatios.SelectMany(r =>
+                        Enumerable.Range(1, 12)
+                            .Select(month => group.FirstOrDefault(e =>
+                                e.KpiDivisionId == r.Id && e.Month == month)?.ScoreManagement?.MinScore)
+                            .Where(score => score.HasValue)
+                            .Select(score => score.Value)
+                    ).ToList();
+
+                    double avgScore = relatedScores.Any() ? relatedScores.Average() : 0;
+                    double adjusted = Math.Round(avgScore);
+                    double weighted = adjusted * (percentSum / 100.0);
+
+                    var allDivisionIds = allDivisionNames.Select(d => d.Id).ToHashSet();
+
+                    var gradeForManyDivisions = complexScores
+                        .Where(x => x.Divisions.Any(divId => allDivisionIds.Contains(divId)))
+                        .ToList();
+
+                    var newGrade = gradeForManyDivisions.FirstOrDefault(e => weighted >= e.MinScore && weighted <= e.MaxScore);
+
+                    var divisionName = string.Join(", ", relatedRatios.Select(x => $"{x.Name} ({x.Ratio})"));
+
+                    divisionResults.Add(new
+                    {
+                        divisionId = divisionName,
+                        average = Math.Round(avgScore, 2),
+                        adjusted = adjusted,
+                        weighted = Math.Round((decimal)weighted, 2),
+                        ratio = percentSum,
+                        grade = newGrade?.Grade ?? "-"
+                    });
+                }
+
+                var finalGradeScore = finalScore.FirstOrDefault(e =>
+                    totalFinalScore >= e.MinScore &&
+                    totalFinalScore <= e.MaxScore);
+
+
+                string finalGrade = finalGradeScore?.Grade ?? "-";
+
+                return new
+                {
+                    id = first.UserId.ToString(),
+                    room = first.User.Room?.Name,
+                    name = first.User.FullName,
+                    position = first.User.Position?.Name,
+                    department = first.User.Team?.Name,
+                    date = first.CreatedAt.ToString("dd.MM.yyyy"),
+                    grades,
+                    finalScore = Math.Round(totalFinalScore, 2),
+                    finalGrade,
+                    divisions = divisionResults
+                };
+            })
+            .ToList());
+
+            var evaluationPeriods = allDivisionNames
+                 .Select(div => new
+                 {
+                     id = div.Id,
+                     name = div.Name,
+                     percentage = div.Ratio,
+                     periods = Enumerable.Range(1, 12).ToList(),
+                 })
+                 .ToList();
+
+            return new
+            {
+                students = studentWithFinals,
+                evaluationPeriods
+            };
+        }
+
+        public async ValueTask<object> GetEvaluationByYearForTeam(int year)
+        {
+            var user = httpContextAccessor?.HttpContext?.User
+              ?? throw new InvalidCredentialException();
+
+            if (!int.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
+                 !int.TryParse(user.FindFirstValue(ClaimTypes.Country), out var teamIdByToken) ||
+                 !Enum.TryParse<Role>(user.FindFirstValue(ClaimTypes.Role), ignoreCase: true, out var role))
+            {
+                throw new InvalidCredentialException("Invalid token claims.");
+            }
+
+            var divisions = await goalService.GetAll(x => x.CreatedAt.Year == year && x.CreatedBy.Role == Role.Ceo)
+                .Include(x => x.Divisions)
+                .FirstOrDefaultAsync();
+
+            var leaderGoal = await goalService.GetAll(x =>
+                    x.CreatedAt.Year == year &&
+                    x.CreatedBy.Id == userId)
+                .Include(x => x.Divisions)
+                    .ThenInclude(d => d.Goals.Where(g => g.TargetValue != null && g.TargetValue.Type == TargetValueType.LeaderEvaluation))
+                        .ThenInclude(g => g.TargetValue)
+                .FirstOrDefaultAsync();
+
+            if (divisions is null) throw new KpiException(404, "goal_not_found");
+
+            var evaluations = await evaluationService.GetAll(x => x.Year == year && x.User.TeamId == teamIdByToken && x.User.RoomId != null && x.User.Role == Role.TeamLeader)
+                .Include(x => x.User)
+                .ThenInclude(x => x.Position)
+                .Include(x => x.User)
+                .ThenInclude(x => x.Team)
+                .Include(x => x.User)
+                .ThenInclude(x => x.Room)
+                .Include(x => x.KpiDivision)
+                .Include(x => x.ScoreManagement)
+                .ToListAsync();
+
+            var ceoDivisions = divisions.Divisions
+             .Where(d => !string.IsNullOrWhiteSpace(d.Name))
+             .Select(d => new
+             {
+                 Name = d.Name,
+                 Ratio = d.Ratio,
+                 Id = d.Id
+             })
+             .ToList();
+
+            var leaderDivisions = leaderGoal?.Divisions
+                .Where(d => !string.IsNullOrWhiteSpace(d.Name))
+                .Select(d => new
+                {
+                    Name = d.Name,
+                    Ratio = d.Ratio,
+                    Id = d.Id
+                })
+                .ToList();
+
+            var allDivisionNames = ceoDivisions
+                .Where(ceoDiv => leaderDivisions.Any(ld =>
+                    ld.Name.ToLower().Trim().Contains(ceoDiv.Name.ToLower().Trim()) &&
+                    ld.Ratio == ceoDiv.Ratio))
+                .ToList();
+
+            var complexScores = await scoreManagementService.GetAll(x => x.IsMoreDivisions).ToListAsync();
+
+            var finalScore = await scoreManagementService.GetAll(x => x.IsFinalScore).ToListAsync();
+
+            var studentWithFinals = await Task.WhenAll(evaluations
+            .GroupBy(e => e.UserId)
+            .Select(async group =>
+            {
+                var first = group.First();
+
+                var grades = allDivisionNames.ToDictionary(
+                 div => div.Id,
+                 div => Enumerable.Range(1, 12).ToDictionary(
+                     month => month.ToString(),
+                     month =>
+                     {
+                         var match = group.FirstOrDefault(e =>
+                             e.KpiDivisionId == div.Id &&
+                             e.Month == month);
+                         return match?.ScoreManagement?.Grade?.ToString();
+                     }
+                 )
+             );
+
+                var divisionResults = new List<object>();
+                double totalFinalScore = 0;
+
+                foreach (var div in allDivisionNames)
+                {
                     var scoresByMonth = Enumerable.Range(1, 12)
                      .Select(month =>
                          group.FirstOrDefault(e =>
