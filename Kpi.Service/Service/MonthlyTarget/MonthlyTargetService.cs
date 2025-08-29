@@ -78,7 +78,7 @@ namespace Kpi.Service.Service.MonthlyTarget
                             ValueNumber = targetDto.ValueNumber,
                             ValueText = targetDto.ValueText,
                             TargetValueId = targetDto.TargetValueId,
-                            MonthlyPerformanceId = existMonthlyEvalutions.Id
+                            MonthlyPerformanceId = existMonthlyEvalutions.Id,
                         };
 
                         await monthlyTargetValueRepository.CreateAsync(monthlyTarget);
@@ -97,6 +97,7 @@ namespace Kpi.Service.Service.MonthlyTarget
             await monthlyTargetCommentRepository.CreateAsync(comment);
 
             existMonthlyEvalutions.IsSended = true;
+            existMonthlyEvalutions.Status = GoalStatus.PendingReview;
             monthlyPerformanceRepository.UpdateAsync(existMonthlyEvalutions);
 
             await monthlyPerformanceRepository.SaveChangesAsync();
