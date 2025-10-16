@@ -1036,7 +1036,7 @@ namespace Kpi.Service.Service.Evaluation
                            .Where(e => e.KpiDivisionId == div.Id)
                            .OrderByDescending(e => e.Month)
                            .FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
-
+                        monthlyAvg = lastMonthScore;
                         weightedScore = lastMonthScore; // просто накопленная сумма предыдущих
                     }
                     else
@@ -1234,7 +1234,7 @@ namespace Kpi.Service.Service.Evaluation
                           .Where(e => e.KpiDivisionId == div.Id)
                           .OrderByDescending(e => e.Month)
                           .FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
-
+                        monthlyAvg = lastMonthScore;
                         weightedScore = lastMonthScore;// просто накопленная сумма предыдущих
                     }
                     else
@@ -1457,7 +1457,7 @@ namespace Kpi.Service.Service.Evaluation
                          .Where(e => e.KpiDivisionId == div.Id)
                          .OrderByDescending(e => e.Month)
                          .FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
-
+                        monthlyAvg = lastMonthScore;
                         weightedScore = lastMonthScore; // просто накопленная сумма предыдущих
                     }
                     else
