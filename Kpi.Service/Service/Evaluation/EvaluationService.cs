@@ -417,36 +417,54 @@ namespace Kpi.Service.Service.Evaluation
                    )
                );
 
-              var divisionResults = new List<object>();
-              double totalFinalScore = 0;
+                  var divisionResults = new List<object>();
+                  double totalFinalScore = 0;
+                  double cumulativeValue = 0;
 
-              foreach (var div in allDivisionNames)
-              {
-                  var scoresByMonth = Enumerable.Range(1, 12)
-                   .Select(month =>
-                       group.FirstOrDefault(e =>
-                           e.KpiDivisionId == div.Id &&
-                           e.Month == month)?.ScoreManagement?.MinScore)
-                   .Where(score => score.HasValue)
-                   .Select(score => score.Value)
-                   .ToList();
-
-                  var monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
-
-                  var adjusted = Math.Round(monthlyAvg); // 환산 값
-                  var weightedScore = adjusted * (div.Ratio / 100.0);
-                  totalFinalScore += (double)weightedScore;
-
-                  divisionResults.Add(new
+                  foreach (var div in allDivisionNames)
                   {
-                      divisionId = div.Id,
-                      average = Math.Round(monthlyAvg, 2),
-                      adjusted = adjusted,
-                      weighted = Math.Round((decimal)weightedScore, 2)
-                  });
-              }
+                      var scoresByMonth = Enumerable.Range(1, 12)
+                          .Select(month =>
+                              group.FirstOrDefault(e =>
+                                  e.KpiDivisionId == div.Id &&
+                                  e.Month == month)?.ScoreManagement?.MinScore)
+                          .Where(score => score.HasValue)
+                          .Select(score => score.Value)
+                          .ToList();
 
-              var addedComplexIds = new HashSet<string>();
+                      double monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                      double adjusted = Math.Round(monthlyAvg);
+
+                      double weightedScore;
+
+                      // ✅ если division последний — считаем cumulative (накопительный)
+                      if (div == allDivisionNames.Last())
+                      {
+                          var lastMonthScore = group
+                             .Where(e => e.KpiDivisionId == div.Id)
+                             .OrderByDescending(e => e.Month)
+                             .FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
+
+                          weightedScore = lastMonthScore; // просто накопленная сумма предыдущих
+                      }
+                      else
+                      {
+                          weightedScore = (adjusted * (div.Ratio / 100.0)) ?? 0;
+                          cumulativeValue += weightedScore;
+                      }
+
+                      totalFinalScore += weightedScore;
+
+                      divisionResults.Add(new
+                      {
+                          divisionId = div.Id,
+                          average = Math.Round(monthlyAvg, 2),
+                          adjusted = adjusted,
+                          weighted = Math.Round((decimal)weightedScore, 2)
+                      });
+                  }
+
+                  var addedComplexIds = new HashSet<string>();
               foreach (var complexScore in complexScores)
               {
                   var relatedDivisionIds = complexScore?.Divisions ?? new int[0];
@@ -597,25 +615,41 @@ namespace Kpi.Service.Service.Evaluation
 
                 var divisionResults = new List<object>();
                 double totalFinalScore = 0;
+                double cumulativeValue = 0;
 
                 foreach (var div in allDivisionNames)
                 {
-
                     var scoresByMonth = Enumerable.Range(1, 12)
-                     .Select(month =>
-                         group.FirstOrDefault(e =>
-                             e.KpiDivisionId == div.Id &&
-                             e.Month == month)?.ScoreManagement?.MinScore)
-                     .Where(score => score.HasValue)
-                     .Select(score => score.Value)
-                     .ToList();
+                        .Select(month =>
+                            group.FirstOrDefault(e =>
+                                e.KpiDivisionId == div.Id &&
+                                e.Month == month)?.ScoreManagement?.MinScore)
+                        .Where(score => score.HasValue)
+                        .Select(score => score.Value)
+                        .ToList();
 
-                    var monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                    double monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                    double adjusted = Math.Round(monthlyAvg);
 
-                    var adjusted = Math.Round(monthlyAvg); // 환산 값
-                    var weightedScore = adjusted * (div.Ratio / 100.0);
-                    totalFinalScore += (double)weightedScore;
+                    double weightedScore;
 
+                    // ✅ если division последний — считаем cumulative (накопительный)
+                    if (div == allDivisionNames.Last())
+                    {
+                        var lastMonthScore = group
+                           .Where(e => e.KpiDivisionId == div.Id)
+                           .OrderByDescending(e => e.Month)
+                           .FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
+
+                        weightedScore = lastMonthScore; // просто накопленная сумма предыдущих
+                    }
+                    else
+                    {
+                        weightedScore = (adjusted * (div.Ratio / 100.0)) ?? 0;
+                        cumulativeValue += weightedScore;
+                    }
+
+                    totalFinalScore += weightedScore;
 
                     divisionResults.Add(new
                     {
