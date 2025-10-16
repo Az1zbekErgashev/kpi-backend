@@ -946,39 +946,51 @@ namespace Kpi.Service.Service.Evaluation
                 var first = group.First();
 
                 var grades = allDivisionNames.ToDictionary(
-                 div => div.Id,
-                 div => Enumerable.Range(1, 12).ToDictionary(
-                     month => month.ToString(),
-                     month =>
-                     {
-                         var match = group.FirstOrDefault(e =>
-                             e.KpiDivisionId == div.Id &&
-                             e.Month == month);
-                         return match?.ScoreManagement?.Grade?.ToString();
-                     }
-                 )
-             );
+                div => div.Id,
+                div => Enumerable.Range(1, 12).ToDictionary(
+                    month => month.ToString(),
+                    month =>
+                    {
+                        var match = group.FirstOrDefault(e =>
+                            e.KpiDivisionId == div.Id &&
+                            e.Month == month);
+                        return match?.ScoreManagement?.Grade?.ToString();
+                    }
+                )
+                );
 
                 var divisionResults = new List<object>();
                 double totalFinalScore = 0;
+                double cumulativeValue = 0;
 
                 foreach (var div in allDivisionNames)
                 {
-
                     var scoresByMonth = Enumerable.Range(1, 12)
-                     .Select(month =>
-                         group.FirstOrDefault(e =>
-                             e.KpiDivisionId == div.Id &&
-                             e.Month == month)?.ScoreManagement?.MinScore)
-                     .Where(score => score.HasValue)
-                     .Select(score => score.Value)
-                     .ToList();
+                        .Select(month =>
+                            group.FirstOrDefault(e =>
+                                e.KpiDivisionId == div.Id &&
+                                e.Month == month)?.ScoreManagement?.MinScore)
+                        .Where(score => score.HasValue)
+                        .Select(score => score.Value)
+                        .ToList();
 
-                    var monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                    double monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                    double adjusted = Math.Round(monthlyAvg);
 
-                    var adjusted = Math.Round(monthlyAvg); // 환산 값
-                    var weightedScore = adjusted * (div.Ratio / 100.0);
-                    totalFinalScore += (double)weightedScore;
+                    double weightedScore;
+
+                    // ✅ если division последний — считаем cumulative (накопительный)
+                    if (div == allDivisionNames.Last())
+                    {
+                        weightedScore = cumulativeValue; // просто накопленная сумма предыдущих
+                    }
+                    else
+                    {
+                        weightedScore = (adjusted * (div.Ratio / 100.0)) ?? 0;
+                        cumulativeValue += weightedScore;
+                    }
+
+                    totalFinalScore += weightedScore;
 
                     divisionResults.Add(new
                     {
@@ -1142,24 +1154,36 @@ namespace Kpi.Service.Service.Evaluation
 
                 var divisionResults = new List<object>();
                 double totalFinalScore = 0;
+                double cumulativeValue = 0;
 
                 foreach (var div in allDivisionNames)
                 {
-
                     var scoresByMonth = Enumerable.Range(1, 12)
-                     .Select(month =>
-                         group.FirstOrDefault(e =>
-                             e.KpiDivisionId == div.Id &&
-                             e.Month == month)?.ScoreManagement?.MinScore)
-                     .Where(score => score.HasValue)
-                     .Select(score => score.Value)
-                     .ToList();
+                        .Select(month =>
+                            group.FirstOrDefault(e =>
+                                e.KpiDivisionId == div.Id &&
+                                e.Month == month)?.ScoreManagement?.MinScore)
+                        .Where(score => score.HasValue)
+                        .Select(score => score.Value)
+                        .ToList();
 
-                    var monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                    double monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                    double adjusted = Math.Round(monthlyAvg);
 
-                    var adjusted = Math.Round(monthlyAvg); // 환산 값
-                    var weightedScore = adjusted * (div.Ratio / 100.0);
-                    totalFinalScore += (double)weightedScore;
+                    double weightedScore;
+
+                    // ✅ если division последний — считаем cumulative (накопительный)
+                    if (div == allDivisionNames.Last())
+                    {
+                        weightedScore = cumulativeValue; // просто накопленная сумма предыдущих
+                    }
+                    else
+                    {
+                        weightedScore = (adjusted * (div.Ratio / 100.0)) ?? 0;
+                        cumulativeValue += weightedScore;
+                    }
+
+                    totalFinalScore += weightedScore;
 
                     divisionResults.Add(new
                     {
@@ -1348,23 +1372,36 @@ namespace Kpi.Service.Service.Evaluation
 
                 var divisionResults = new List<object>();
                 double totalFinalScore = 0;
+                double cumulativeValue = 0;
 
                 foreach (var div in allDivisionNames)
                 {
                     var scoresByMonth = Enumerable.Range(1, 12)
-                     .Select(month =>
-                         group.FirstOrDefault(e =>
-                             e.KpiDivisionId == div.Id &&
-                             e.Month == month)?.ScoreManagement?.MinScore)
-                     .Where(score => score.HasValue)
-                     .Select(score => score.Value)
-                     .ToList();
+                        .Select(month =>
+                            group.FirstOrDefault(e =>
+                                e.KpiDivisionId == div.Id &&
+                                e.Month == month)?.ScoreManagement?.MinScore)
+                        .Where(score => score.HasValue)
+                        .Select(score => score.Value)
+                        .ToList();
 
-                    var monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                    double monthlyAvg = scoresByMonth.Any() ? scoresByMonth.Average() : 0;
+                    double adjusted = Math.Round(monthlyAvg);
 
-                    var adjusted = Math.Round(monthlyAvg); // 환산 값
-                    var weightedScore = adjusted * (div.Ratio / 100.0);
-                    totalFinalScore += (double)weightedScore;
+                    double weightedScore;
+
+                    // ✅ если division последний — считаем cumulative (накопительный)
+                    if (div == allDivisionNames.Last())
+                    {
+                        weightedScore = cumulativeValue; // просто накопленная сумма предыдущих
+                    }
+                    else
+                    {
+                        weightedScore = (adjusted * (div.Ratio / 100.0)) ?? 0;
+                        cumulativeValue += weightedScore;
+                    }
+
+                    totalFinalScore += weightedScore;
 
                     divisionResults.Add(new
                     {
