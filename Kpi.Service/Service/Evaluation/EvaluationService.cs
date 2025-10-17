@@ -440,17 +440,22 @@ namespace Kpi.Service.Service.Evaluation
                       // ✅ если division последний — считаем cumulative (накопительный)
                       if (div == allDivisionNames.Last())
                       {
-                          var lastMonthScore = group
-  .Where(e => e.KpiDivisionId == div.Id)
-  .OrderByDescending(e => e.Month)
-  .FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore
-  ?? group
-      .Where(e => e.KpiDivisionId == div.Id)
-      .OrderByDescending(e => e.Month)
-      .FirstOrDefault()?.ScoreManagement?.MinScore
-  ?? 0;
+                          var divisionScores = group
+                         .Where(e => e.KpiDivisionId == div.Id && e.ScoreManagement != null)
+                         .OrderByDescending(e => e.Month)
+                         .ToList();
+
+                          var decScore = divisionScores.FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore ?? 0;
+                          var lastAvailableScore = divisionScores.FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
+
+                          var lastMonthScore = decScore > 0 ? decScore : lastAvailableScore;
+
                           monthlyAvg = lastMonthScore;
-                          weightedScore = lastMonthScore; // просто накопленная сумма предыдущих
+
+                          // ✅ применяем ratio, чтобы не превышать 100
+                          weightedScore = (lastMonthScore * (div.Ratio / 100.0)) ?? 0;
+
+                          cumulativeValue += weightedScore;// просто накопленная сумма предыдущих
                       }
                       else
                       {
@@ -524,8 +529,8 @@ namespace Kpi.Service.Service.Evaluation
 
 
               string finalGrade = finalGradeScore?.Grade ?? "-";
-
-              return new
+                  totalFinalScore = Math.Min(totalFinalScore, 100);
+                  return new
               {
                   id = first.UserId.ToString(),
                   room = first.User.Room?.Name,
@@ -641,17 +646,22 @@ namespace Kpi.Service.Service.Evaluation
                     // ✅ если division последний — считаем cumulative (накопительный)
                     if (div == allDivisionNames.Last())
                     {
-                        var lastMonthScore = group
-                          .Where(e => e.KpiDivisionId == div.Id)
-                          .OrderByDescending(e => e.Month)
-                          .FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore
-                          ?? group
-                              .Where(e => e.KpiDivisionId == div.Id)
-                              .OrderByDescending(e => e.Month)
-                              .FirstOrDefault()?.ScoreManagement?.MinScore
-                          ?? 0;
+                        var divisionScores = group
+                         .Where(e => e.KpiDivisionId == div.Id && e.ScoreManagement != null)
+                         .OrderByDescending(e => e.Month)
+                         .ToList();
+
+                        var decScore = divisionScores.FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore ?? 0;
+                        var lastAvailableScore = divisionScores.FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
+
+                        var lastMonthScore = decScore > 0 ? decScore : lastAvailableScore;
+
                         monthlyAvg = lastMonthScore;
-                        weightedScore = lastMonthScore; // просто накопленная сумма предыдущих
+
+                        // ✅ применяем ratio, чтобы не превышать 100
+                        weightedScore = (lastMonthScore * (div.Ratio / 100.0)) ?? 0;
+
+                        cumulativeValue += weightedScore;// просто накопленная сумма предыдущих
                     }
                     else
                     {
@@ -726,7 +736,7 @@ namespace Kpi.Service.Service.Evaluation
 
 
                 string finalGrade = finalGradeScore?.Grade ?? "-";
-
+                totalFinalScore = Math.Min(totalFinalScore, 100);
                 return new
                 {
                     id = first.UserId.ToString(),
@@ -843,17 +853,22 @@ namespace Kpi.Service.Service.Evaluation
                     // ✅ если division последний — считаем cumulative (накопительный)
                     if (div == allDivisionNames.Last())
                     {
-                        var lastMonthScore = group
-                       .Where(e => e.KpiDivisionId == div.Id)
-                       .OrderByDescending(e => e.Month)
-                       .FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore
-                       ?? group
-                           .Where(e => e.KpiDivisionId == div.Id)
-                           .OrderByDescending(e => e.Month)
-                           .FirstOrDefault()?.ScoreManagement?.MinScore
-                       ?? 0;
+                        var divisionScores = group
+                          .Where(e => e.KpiDivisionId == div.Id && e.ScoreManagement != null)
+                          .OrderByDescending(e => e.Month)
+                          .ToList();
+
+                        var decScore = divisionScores.FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore ?? 0;
+                        var lastAvailableScore = divisionScores.FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
+
+                        var lastMonthScore = decScore > 0 ? decScore : lastAvailableScore;
+
                         monthlyAvg = lastMonthScore;
-                        weightedScore = lastMonthScore; // просто накопленная сумма предыдущих
+
+                        // ✅ применяем ratio, чтобы не превышать 100
+                        weightedScore = (lastMonthScore * (div.Ratio / 100.0)) ?? 0;
+
+                        cumulativeValue += weightedScore; // просто накопленная сумма предыдущих
                     }
                     else
                     {
@@ -928,7 +943,7 @@ namespace Kpi.Service.Service.Evaluation
 
 
                 string finalGrade = finalGradeScore?.Grade ?? "-";
-
+                totalFinalScore = Math.Min(totalFinalScore, 100);
                 return new
                 {
                     id = first.UserId.ToString(),
@@ -1047,17 +1062,22 @@ namespace Kpi.Service.Service.Evaluation
                     // ✅ если division последний — считаем cumulative (накопительный)
                     if (div == allDivisionNames.Last())
                     {
-                        var lastMonthScore = group
-                        .Where(e => e.KpiDivisionId == div.Id)
-                        .OrderByDescending(e => e.Month)
-                        .FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore
-                        ?? group
-                            .Where(e => e.KpiDivisionId == div.Id)
-                            .OrderByDescending(e => e.Month)
-                            .FirstOrDefault()?.ScoreManagement?.MinScore
-                        ?? 0;
+                        var divisionScores = group
+                          .Where(e => e.KpiDivisionId == div.Id && e.ScoreManagement != null)
+                          .OrderByDescending(e => e.Month)
+                          .ToList();
+
+                        var decScore = divisionScores.FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore ?? 0;
+                        var lastAvailableScore = divisionScores.FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
+
+                        var lastMonthScore = decScore > 0 ? decScore : lastAvailableScore;
+
                         monthlyAvg = lastMonthScore;
-                        weightedScore = lastMonthScore; // просто накопленная сумма предыдущих
+
+                        // ✅ применяем ratio, чтобы не превышать 100
+                        weightedScore = (lastMonthScore * (div.Ratio / 100.0)) ?? 0;
+
+                        cumulativeValue += weightedScore; // просто накопленная сумма предыдущих
                     }
                     else
                     {
@@ -1131,7 +1151,7 @@ namespace Kpi.Service.Service.Evaluation
 
 
                 string finalGrade = finalGradeScore?.Grade ?? "-";
-
+                totalFinalScore = Math.Min(totalFinalScore, 100);
                 return new
                 {
                     id = first.UserId.ToString(),
@@ -1251,16 +1271,21 @@ namespace Kpi.Service.Service.Evaluation
                     if (div == allDivisionNames.Last())
                     {
                         var divisionScores = group
-                .Where(e => e.KpiDivisionId == div.Id && e.ScoreManagement != null)
-                .OrderByDescending(e => e.Month)
-                .ToList();
+                          .Where(e => e.KpiDivisionId == div.Id && e.ScoreManagement != null)
+                          .OrderByDescending(e => e.Month)
+                          .ToList();
 
                         var decScore = divisionScores.FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore ?? 0;
                         var lastAvailableScore = divisionScores.FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
 
                         var lastMonthScore = decScore > 0 ? decScore : lastAvailableScore;
+
                         monthlyAvg = lastMonthScore;
-                        weightedScore = lastMonthScore;// просто накопленная сумма предыдущих
+
+                        // ✅ применяем ratio, чтобы не превышать 100
+                        weightedScore = (lastMonthScore * (div.Ratio / 100.0)) ?? 0;
+
+                        cumulativeValue += weightedScore;// просто накопленная сумма предыдущих
                     }
                     else
                     {
@@ -1334,7 +1359,7 @@ namespace Kpi.Service.Service.Evaluation
 
 
                 string finalGrade = finalGradeScore?.Grade ?? "-";
-
+                totalFinalScore = Math.Min(totalFinalScore, 100);
                 return new
                 {
                     id = first.UserId.ToString(),
@@ -1478,17 +1503,22 @@ namespace Kpi.Service.Service.Evaluation
                     // ✅ если division последний — считаем cumulative (накопительный)
                     if (div == allDivisionNames.Last())
                     {
-                        var lastMonthScore = group
-                         .Where(e => e.KpiDivisionId == div.Id)
-                         .OrderByDescending(e => e.Month)
-                         .FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore
-                         ?? group
-                             .Where(e => e.KpiDivisionId == div.Id)
-                             .OrderByDescending(e => e.Month)
-                             .FirstOrDefault()?.ScoreManagement?.MinScore
-                         ?? 0;
+                        var divisionScores = group
+                          .Where(e => e.KpiDivisionId == div.Id && e.ScoreManagement != null)
+                          .OrderByDescending(e => e.Month)
+                          .ToList();
+
+                        var decScore = divisionScores.FirstOrDefault(e => e.Month == 12)?.ScoreManagement?.MinScore ?? 0;
+                        var lastAvailableScore = divisionScores.FirstOrDefault()?.ScoreManagement?.MinScore ?? 0;
+
+                        var lastMonthScore = decScore > 0 ? decScore : lastAvailableScore;
+
                         monthlyAvg = lastMonthScore;
-                        weightedScore = lastMonthScore; // просто накопленная сумма предыдущих
+
+                        // ✅ применяем ratio, чтобы не превышать 100
+                        weightedScore = (lastMonthScore * (div.Ratio / 100.0)) ?? 0;
+
+                        cumulativeValue += weightedScore;// просто накопленная сумма предыдущих
                     }
                     else
                     {
@@ -1562,6 +1592,8 @@ namespace Kpi.Service.Service.Evaluation
 
 
                 string finalGrade = finalGradeScore?.Grade ?? "-";
+
+                totalFinalScore = Math.Min(totalFinalScore, 100);
 
                 return new
                 {
