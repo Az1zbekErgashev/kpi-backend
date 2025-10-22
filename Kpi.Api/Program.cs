@@ -28,7 +28,9 @@ builder.Configuration
 builder.Services.AddControllers().AddJsonOptions(x =>
 {
     x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-
+    x.JsonSerializerOptions.Converters.Add(new JsonTimeZoneConverter(
+        builder.Services.BuildServiceProvider().GetRequiredService<IHttpContextAccessor>()
+    ));
     x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 }); ;
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -108,7 +110,12 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/api/swagger/v1/swagger.json", "My Chat bot API V1");
     options.RoutePrefix = "api/swagger";
 });
-
+app.Use(async (context, next) =>
+{
+    var tz = context.Request.Headers["TimeZone"].ToString();
+    Console.WriteLine($"[Middleware] TimeZone header = {tz}");
+    await next.Invoke();
+});
 
 var env = app.Services.GetRequiredService<IWebHostEnvironment>();
 EnvironmentHelper.WebRootPath = env.WebRootPath;
