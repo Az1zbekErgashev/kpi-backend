@@ -61,7 +61,8 @@ namespace Kpi.Service.Service.User
                 UserName = dto.UserName,
                 Password = dto.Password.Encrypt(),
                 RoomId = dto.RoomId,
-                PositionId = dto.PositionId
+                PositionId = dto.PositionId,
+                UpdatedAt = DateTime.UtcNow
             };
 
             await _userRepository.CreateAsync(user);

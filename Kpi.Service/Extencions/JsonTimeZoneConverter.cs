@@ -33,7 +33,7 @@ namespace Kpi.Service.Extencions
                     ? TimeZoneInfo.FindSystemTimeZoneById(timeZoneHeader)
                     : TimeZoneInfo.FindSystemTimeZoneById("Asia/Tashkent"); 
 
-                var localTime = TimeZoneInfo.ConvertTimeFromUtc(value.ToUniversalTime(), tz);
+                var localTime = TimeZoneInfo.ConvertTimeFromUtc(value, tz);
                 writer.WriteStringValue(localTime.ToString());
             }
             catch
