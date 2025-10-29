@@ -140,7 +140,7 @@ namespace Kpi.Service.Service.User
 
             if (!string.IsNullOrEmpty(dto.Text))
             {
-                query = query.Where(x => x.UserName.Contains(dto.Text) || x.FullName.Contains(dto.Text) || (x.Team != null && x.Team.Name.toLower().Contains(dto.Text.toLower())));
+                query = query.Where(x => x.UserName.Contains(dto.Text) || x.FullName.Contains(dto.Text) || (x.Team != null && x.Team.Name.ToLower().Contains(dto.Text.ToLower())));
             }
 
             int totalCount = await query.CountAsync();
