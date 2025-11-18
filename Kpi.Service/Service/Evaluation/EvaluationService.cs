@@ -547,7 +547,7 @@ namespace Kpi.Service.Service.Evaluation
           .ToList());
 
             var evaluationPeriods = allDivisionNames
-                .OrderBy(x => x.Ratio)
+                .OrderByDescending(x => x.Ratio)
                  .Select(div => new
                  {
                      id = div.Id,
@@ -755,7 +755,7 @@ namespace Kpi.Service.Service.Evaluation
             .ToList());
 
             var evaluationPeriods = allDivisionNames
-                .OrderBy(x => x.Ratio)
+                .OrderByDescending(x => x.Ratio)
                  .Select(div => new
                  {
                      id = div.Id,
@@ -963,7 +963,7 @@ namespace Kpi.Service.Service.Evaluation
             .ToList());
 
             var evaluationPeriods = allDivisionNames
-                .OrderBy(x => x.Ratio)
+                .OrderByDescending(x => x.Ratio)
                  .Select(div => new
                  {
                      id = div.Id,
@@ -1172,7 +1172,7 @@ namespace Kpi.Service.Service.Evaluation
             .ToList()); 
 
             var evaluationPeriods = allDivisionNames
-                .OrderBy(x => x.Ratio)
+                .OrderByDescending(x => x.Ratio)
                  .Select(div => new
                  {
                      id = div.Id,
@@ -1381,7 +1381,7 @@ namespace Kpi.Service.Service.Evaluation
             .ToList());
 
             var evaluationPeriods = allDivisionNames
-                .OrderBy(x => x.Ratio)
+                .OrderByDescending(x => x.Ratio)
                  .Select(div => new
                  {
                      id = div.Id,
@@ -1616,7 +1616,7 @@ namespace Kpi.Service.Service.Evaluation
             })
             .ToList());
 
-            var evaluationPeriods = allDivisionNames.OrderBy(x => x.Ratio)
+            var evaluationPeriods = allDivisionNames.OrderByDescending(x => x.Ratio)
                  .Select(div => new
                  {
                      id = div.Id,
